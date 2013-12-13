@@ -1,0 +1,33 @@
+name:           symbols
+version:        0.1
+synopsis:       Type-level symbols compatible with older versions of GHC.
+license:        BSD3
+license-file:   LICENSE
+author:         Shane O'Brien
+maintainer:     shane@duairc.com
+stability:      Experimental
+category:       Data
+cabal-version:  >= 1.6
+build-type:     Simple
+homepage:       https://github.com/duairc/symbols
+bug-reports:    https://github.com/duairc/symbols/issues
+
+extra-source-files:
+  LICENSE
+
+library
+  hs-source-dirs:
+    src
+
+  exposed-modules:
+    Type.Symbol
+
+  build-depends:
+    base >= 4 && < 5,
+    template-haskell >= 2.3 && < 3
+
+  ghc-options: -Wall
+
+source-repository head
+  type:     git
+  location: https://github.com/duairc/symbols

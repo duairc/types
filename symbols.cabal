@@ -6,7 +6,7 @@ license-file:   LICENSE
 author:         Shane O'Brien
 maintainer:     shane@duairc.com
 stability:      Experimental
-category:       Data
+category:       Type
 cabal-version:  >= 1.6
 build-type:     Simple
 homepage:       https://github.com/duairc/symbols
@@ -21,6 +21,10 @@ library
 
   exposed-modules:
     Type.Symbol
+
+  if impl(ghc < 7.6)
+    exposed-modules:
+      Type.Symbol.Internal
 
   build-depends:
     base >= 4 && < 5,

@@ -20,6 +20,7 @@ where
 -- base ----------------------------------------------------------------------
 import           Data.String (IsString (fromString))
 
+
 -- template-haskell ----------------------------------------------------------
 import           Language.Haskell.TH
                      ( Q
@@ -32,14 +33,15 @@ import           Language.Haskell.TH
 #if __GLASGOW_HASKELL__ < 706
 -- base ----------------------------------------------------------------------
 import           Data.Bits (testBit)
-import           Prelude hiding (Char)
+
 
 -- symbols -------------------------------------------------------------------
-import           Type.Symbol.Internal (O, I, Char, Cons, Nil)
+import           Type.Symbol.Internal (O, I, C, (:::), Nil)
 #else
 -- template-haskell ----------------------------------------------------------
 import           Language.Haskell.TH (Type (LitT), TyLit (StrTyLit))
 #endif
+
 
 #if __GLASGOW_HASKELL__ >= 707
 -- base ----------------------------------------------------------------------
@@ -71,9 +73,9 @@ type_ :: String -> Type
 #if __GLASGOW_HASKELL__ >= 706
 type_ = LitT . StrTyLit
 #else
-type_ = foldr (AppT . AppT (ConT ''Cons) . char) (ConT ''Nil)
+type_ = foldr (AppT . AppT (ConT ''(:::)) . char) (ConT ''Nil)
   where
-    char c = foldl AppT (ConT ''Char) (map (bit c) [0..31])
+    char c = foldl AppT (ConT ''C) (map (bit c) [0..31])
     bit c n = ConT (if testBit (fromEnum c) n then ''I else ''O)
 #endif
 

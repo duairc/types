@@ -1,9 +1,6 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TemplateHaskell #-}
-#if __GLASGOW_HASKELL__ == 706
-{-# LANGUAGE PolyKinds #-}
-#endif
 #if __GLASGOW_HASKELL__ >= 702
 {-# LANGUAGE Trustworthy #-}
 #endif
@@ -11,46 +8,51 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module Type.Symbol
-    ( proxy
+    ( KnownSymbol
+    , symbolVal
+    , proxy
     , type_
     , synonym
     )
 where
 
 -- base ----------------------------------------------------------------------
+#if __GLASGOW_HASKELL__ < 706
+import           Data.Bits (testBit)
+#endif
 import           Data.String (IsString (fromString))
+import           Data.Proxy (Proxy (Proxy))
+#if __GLASGOW_HASKELL__ >= 708
+import           GHC.TypeLits (KnownSymbol, symbolVal)
+#endif
 
 
+#if __GLASGOW_HASKELL__ < 708
+-- symbols-core --------------------------------------------------------------
+#if __GLASGOW_HASKELL__ < 706
+import           Type.Symbol.Internal (O, I, C, (:::), Nil)
+#endif
+import           Type.Symbol.KnownSymbol (KnownSymbol, symbolVal)
+
+
+#endif
 -- template-haskell ----------------------------------------------------------
 import           Language.Haskell.TH
-                     ( Q
+                     ( Dec (TySynD)
                      , Exp (SigE, ConE)
-                     , Type (ConT, AppT)
-                     , Dec (TySynD)
+                     , Q
+                     , Type
+                         ( AppT
+                         , ConT
+#if __GLASGOW_HASKELL__ >= 706
+                         , LitT
+#endif
+                         )
+#if __GLASGOW_HASKELL__ >= 706
+                     , TyLit (StrTyLit)
+#endif
                      , mkName
                      )
-
-#if __GLASGOW_HASKELL__ < 706
--- base ----------------------------------------------------------------------
-import           Data.Bits (testBit)
-
-
--- symbols -------------------------------------------------------------------
-import           Type.Symbol.Internal (O, I, C, (:::), Nil)
-#else
--- template-haskell ----------------------------------------------------------
-import           Language.Haskell.TH (Type (LitT), TyLit (StrTyLit))
-#endif
-
-
-#if __GLASGOW_HASKELL__ >= 707
--- base ----------------------------------------------------------------------
-import           Data.Proxy (Proxy (Proxy))
-#else
-
-------------------------------------------------------------------------------
-data Proxy s = Proxy deriving (Eq, Ord, Read, Show)
-#endif
 
 
 ------------------------------------------------------------------------------

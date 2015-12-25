@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE TypeOperators #-}
 
 #if __GLASGOW_HASKELL__ >= 702
 #if __GLASGOW_HASKELL__ >= 706
@@ -16,8 +17,14 @@
 {-# LANGUAGE UndecidableInstances #-}
 #endif
 
-module Type.Symbol.KnownSymbol
-    ( KnownSymbol
+module GHC.TypeLits.Compat
+    ( (:+)
+    , (:*)
+    , (:^)
+    , (:-)
+    , KnownNat
+    , natVal
+    , KnownSymbol
     , symbolVal
     )
 where
@@ -26,7 +33,13 @@ where
 -- base ----------------------------------------------------------------------
 import           GHC.TypeLits
 #if __GLASGOW_HASKELL__ >= 708
-                     ( KnownSymbol
+                     ( type (+)
+                     , type (*)
+                     , type (^)
+                     , type (-)
+                     , KnownNat
+                     , natVal
+                     , KnownSymbol
                      , symbolVal
                      )
 #else
@@ -37,10 +50,15 @@ import           GHC.TypeLits
                      , fromSing
                      , sing
                      )
+
 #endif
-#else
--- symbols-core --------------------------------------------------------------
-import           Type.Symbol.Internal (KnownSymbol, symbolVal)
+#endif
+#if __GLASGOW_HASKELL__ < 708
+-- typelits-compat -----------------------------------------------------------
+import           Type.Nat.Compat ((:+), (:*), (:^), (:-), KnownNat, natVal)
+#if __GLASGOW_HASKELL__ < 706
+import           Type.Symbol.Compat (KnownSymbol, symbolVal)
+#endif
 #endif
 #if __GLASGOW_HASKELL__ >= 706 && __GLASGOW_HASKELL__ < 708
 
@@ -58,4 +76,22 @@ instance SingRep n String => KnownSymbol n where
 ------------------------------------------------------------------------------
 symbolVal :: forall n proxy. KnownSymbol n => proxy n -> String
 symbolVal _ = fromSing (symbolSing :: Sing n)
+#endif
+#if __GLASGOW_HASKELL__ >= 708
+
+
+------------------------------------------------------------------------------
+type a :+ b = a + b
+
+
+------------------------------------------------------------------------------
+type a :* b = a * b
+
+
+------------------------------------------------------------------------------
+type a :^ b = a ^ b
+
+
+------------------------------------------------------------------------------
+type a :- b = a - b
 #endif

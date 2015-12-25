@@ -1,6 +1,6 @@
-name:           symbols-core
+name:           typelits-compat
 version:        0.1
-synopsis:       Type-level symbols compatible with older versions of GHC.
+synopsis:       Type-level literals compatible with older versions of GHC.
 license:        BSD3
 license-file:   LICENSE
 author:         Shane O'Brien
@@ -9,8 +9,8 @@ stability:      Experimental
 category:       Type
 cabal-version:  >= 1.6
 build-type:     Simple
-homepage:       https://github.com/duairc/symbols
-bug-reports:    https://github.com/duairc/symbols/issues
+homepage:       https://github.com/duairc/typelits
+bug-reports:    https://github.com/duairc/typelits/issues
 
 extra-source-files:
   LICENSE
@@ -20,8 +20,10 @@ library
     src
 
   exposed-modules:
-    Type.Symbol.Internal
-    Type.Symbol.KnownSymbol
+    GHC.TypeLits.Compat
+    Type.List.Compat
+    Type.Nat.Compat
+    Type.Symbol.Compat
 
   build-depends:
     base >= 4 && < 5
@@ -30,4 +32,4 @@ library
 
 source-repository head
   type:     git
-  location: https://github.com/duairc/symbols
+  location: https://github.com/duairc/typelits

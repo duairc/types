@@ -7,9 +7,9 @@
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-module Type.Symbol
-    ( KnownSymbol
-    , symbolVal
+module Type.Nat.TH
+    ( KnownNat
+    , natVal
     , proxy
     , type_
     , synonym
@@ -17,22 +17,15 @@ module Type.Symbol
 where
 
 -- base ----------------------------------------------------------------------
-#if __GLASGOW_HASKELL__ < 706
-import           Data.Bits (testBit)
-#endif
-import           Data.String (IsString (fromString))
 import           Data.Proxy (Proxy (Proxy))
 #if __GLASGOW_HASKELL__ >= 708
-import           GHC.TypeLits (KnownSymbol, symbolVal)
+import           GHC.TypeLits (KnownNat, natVal)
 #endif
 
 
 #if __GLASGOW_HASKELL__ < 708
--- symbols-core --------------------------------------------------------------
-#if __GLASGOW_HASKELL__ < 706
-import           Type.Symbol.Internal (O, I, C, (:::), Nil)
-#endif
-import           Type.Symbol.KnownSymbol (KnownSymbol, symbolVal)
+-- typelits-compat -----------------------------------------------------------
+import           Type.Nat.Compat (Z, S, KnownNat, natVal)
 
 
 #endif
@@ -44,44 +37,72 @@ import           Language.Haskell.TH
                      , Type
                          ( AppT
                          , ConT
-#if __GLASGOW_HASKELL__ >= 706
+#if __GLASGOW_HASKELL__ >= 708
                          , LitT
 #endif
                          )
-#if __GLASGOW_HASKELL__ >= 706
-                     , TyLit (StrTyLit)
+#if __GLASGOW_HASKELL__ >= 708
+                     , TyLit (NumTyLit)
 #endif
                      , mkName
                      )
 
 
+#if __GLASGOW_HASKELL__ < 704
 ------------------------------------------------------------------------------
-instance IsString (Q Exp) where
-    fromString = return . proxy
-
-
-------------------------------------------------------------------------------
-instance IsString (Q Type) where
-    fromString = return . type_
+instance Eq (Q Exp) where
+    a == b = undefined
 
 
 ------------------------------------------------------------------------------
-proxy :: String -> Exp
+instance Show (Q Exp) where
+    show _ = "Q Exp"
+
+
+------------------------------------------------------------------------------
+instance Eq (Q Type) where
+    a == b = undefined
+
+
+------------------------------------------------------------------------------
+instance Show (Q Type) where
+    show _ = "Q Type"
+
+
+#endif
+------------------------------------------------------------------------------
+instance Num (Q Exp) where
+    fromInteger = return . proxy
+    (+) = undefined
+    (*) = undefined
+    negate = undefined
+    abs = undefined
+
+
+------------------------------------------------------------------------------
+instance Num (Q Type) where
+    fromInteger = return . type_
+    (+) = undefined
+    (*) = undefined
+    negate = undefined
+    abs = undefined
+
+
+------------------------------------------------------------------------------
+proxy :: Integer -> Exp
 proxy = SigE (ConE 'Proxy) . AppT (ConT ''Proxy) . type_
 
 
 ------------------------------------------------------------------------------
-type_ :: String -> Type
-#if __GLASGOW_HASKELL__ >= 706
-type_ = LitT . StrTyLit
+type_ :: Integer -> Type
+#if __GLASGOW_HASKELL__ >= 708
+type_ = LitT . NumTyLit
 #else
-type_ = foldr (AppT . AppT (ConT ''(:::)) . char) (ConT ''Nil)
-  where
-    char c = foldl AppT (ConT ''C) (map (bit c) [0..31])
-    bit c n = ConT (if testBit (fromEnum c) n then ''I else ''O)
+type_ = ($ ConT ''Z) . foldr (.) id . flip replicate (AppT (ConT ''S))
+    . fromInteger
 #endif
 
 
 ------------------------------------------------------------------------------
-synonym :: String -> String -> Q [Dec]
+synonym :: String -> Integer -> Q [Dec]
 synonym name symbol = return [TySynD (mkName name) [] (type_ symbol)]

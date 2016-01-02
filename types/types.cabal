@@ -1,0 +1,79 @@
+name:           types
+version:        0.1
+synopsis:       A "standard library" for type-level programming compatible with older versions of GHC.
+license:        BSD3
+license-file:   LICENSE
+author:         Shane O'Brien
+maintainer:     shane@duairc.com
+stability:      Experimental
+category:       Type
+cabal-version:  >= 1.6
+build-type:     Simple
+homepage:       https://github.com/duairc/types
+bug-reports:    https://github.com/duairc/types/issues
+
+extra-source-files:
+  LICENSE
+
+library
+  hs-source-dirs:
+    src
+
+  include-dirs:
+    include
+
+  exposed-modules:
+    GHC.TypeLits.Compat
+    Type.Bits
+    Type.Bool
+    Type.Char
+    Type.Either
+    Type.Eq
+    Type.List
+    Type.Maybe
+    Type.Meta
+    Type.Natural
+    Type.Num
+    Type.Ordering
+    Type.Ord
+    Type.Semigroup
+    Type.String
+    Type.Tuple.Unit
+    Type.Tuple.Pair
+    Type.Tuple.Triplet
+    Type.Tuple.Quartet
+    Type.Tuple.Quintet
+    Type.Tuple.Sextet
+    Type.Tuple.Septet
+
+  build-depends:
+    base >= 4 && < 5
+
+  if impl(ghc >= 7.6)
+    cpp-options: -DDataPolyKinds
+
+  if impl(ghc >= 7.8)
+    cpp-options: -DTypeLits
+
+  if impl(ghc >= 7.8)
+    cpp-options: -DClosedTypeFamilies
+
+  if impl(ghc >= 7.2)
+    cpp-options: -DSafeHaskell
+
+  if impl(ghc >= 7.2)
+    cpp-options: -DEqualitySuperclassConstraints
+
+  if impl(ghc >= 7.2)
+    cpp-options: -DGenericDeriving
+    if impl(ghc < 7.6)
+      build-depends: ghc-prim == 0.2.0.0
+
+  if impl(ghc >= 7.10)
+    cpp-options: -DOverlapPragma -DOverlappingInstances=NoOverlappingInstances
+
+  ghc-options: -Wall
+
+source-repository head
+  type:     git
+  location: https://github.com/duairc/typelits

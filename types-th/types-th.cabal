@@ -1,0 +1,40 @@
+name:           types-th
+version:        0.1
+synopsis:       Template Haskell backed type-level literals for use with the types library.
+license:        BSD3
+license-file:   LICENSE
+author:         Shane O'Brien
+maintainer:     shane@duairc.com
+stability:      Experimental
+category:       Type
+cabal-version:  >= 1.6
+build-type:     Simple
+homepage:       https://github.com/duairc/types
+bug-reports:    https://github.com/duairc/types/issues
+
+extra-source-files:
+  LICENSE
+
+library
+  hs-source-dirs:
+    src
+
+  exposed-modules:
+    Type.TH
+
+  build-depends:
+    base >= 4 && < 5,
+    template-haskell >= 2.3 && < 3,
+    types >= 0.1 && < 0.2
+
+  if impl(ghc >= 7.8)
+    cpp-options: -DTypeLits
+
+  if impl(ghc >= 7.2)
+    cpp-options: -DSafeHaskell
+
+  ghc-options: -Wall
+
+source-repository head
+  type:     git
+  location: https://github.com/duairc/types

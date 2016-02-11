@@ -55,6 +55,9 @@ module GHC.TypeLits.Compat
     , (:^)
     , CmpNat
     , CmpSymbol
+    -- * Values
+    , Zero
+    , One
     )
 where
 
@@ -96,6 +99,17 @@ import           Type.Bool (True)
 import           Type.Meta (Known, val, Proxy (Proxy), (:~:) (Refl))
 #if !defined(UseTypeLits) && defined(DataPolyKinds)
 import           Type.Natural (Nat)
+#endif
+#ifndef UseTypeLits
+import           Type.Natural
+                     (
+#ifdef DataPolyKinds
+                       Nat
+                     ,
+#endif
+                       Zero
+                     , One
+                     )
 #endif
 import qualified Type.Num as N ((:+), (:-), (:*), (:^))
 import           Type.Ord (Compare)
@@ -280,11 +294,11 @@ type CmpSymbol (a :: KString) (b :: KString) = Compare a b
 
 
 ------------------------------------------------------------------------------
-class a <= b => a :<= b
+class (<=) a b => (:<=) a b
 
 
 ------------------------------------------------------------------------------
-instance a <= b => a :<= b
+instance (<=) a b => (:<=) a b
 
 
 ------------------------------------------------------------------------------
@@ -305,4 +319,12 @@ type a :* b = a * b
 
 ------------------------------------------------------------------------------
 type a :^ b = a ^ b
+
+
+------------------------------------------------------------------------------
+type Zero = 0
+
+
+------------------------------------------------------------------------------
+type One = 1
 #endif

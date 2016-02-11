@@ -37,4 +37,4 @@ library
 
 source-repository head
   type:     git
-  location: https://github.com/duairc/types
+  location: https://github.com/duairc/types.git

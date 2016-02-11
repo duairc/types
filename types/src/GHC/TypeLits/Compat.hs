@@ -13,7 +13,7 @@
 {-# LANGUAGE UndecidableInstances #-}
 
 #ifdef SafeHaskell
-#if defined(TypeLits) && __GLASGOW_HASKELL__ >= 710
+#if defined(UseTypeLits) && __GLASGOW_HASKELL__ >= 710
 {-# LANGUAGE Safe #-}
 #else
 {-# LANGUAGE Trustworthy #-}
@@ -62,7 +62,7 @@ where
 #if defined(DataPolyKinds) && __GLASGOW_HASKELL__ < 708
 import           GHC.Exts (Any)
 #endif
-#ifdef TypeLits
+#ifdef UseTypeLits
 import           GHC.TypeLits
                      ( Nat
                      , Symbol
@@ -94,16 +94,16 @@ import           Unsafe.Coerce (unsafeCoerce)
 -- types ---------------------------------------------------------------------
 import           Type.Bool (True)
 import           Type.Meta (Known, val, Proxy (Proxy), (:~:) (Refl))
-#if !defined(TypeLits) && defined(DataPolyKinds)
+#if !defined(UseTypeLits) && defined(DataPolyKinds)
 import           Type.Natural (Nat)
 #endif
 import qualified Type.Num as N ((:+), (:-), (:*), (:^))
 import           Type.Ord (Compare)
 import qualified Type.Ord as O ((:<=))
-#if !defined(TypeLits) < 708 && defined(DataPolyKinds)
+#if !defined(UseTypeLits) && defined(DataPolyKinds)
 import           Type.String (Symbol)
 #endif
-#ifndef TypeLits
+#ifndef UseTypeLits
 
 
 ------------------------------------------------------------------------------
@@ -296,7 +296,7 @@ type a :+ b = a + b
 
 
 ------------------------------------------------------------------------------
-type a := b = a - b
+type a :- b = a - b
 
 
 ------------------------------------------------------------------------------

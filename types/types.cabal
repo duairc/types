@@ -29,6 +29,7 @@ library
     Type.Char
     Type.Either
     Type.Eq
+    Type.Function.Uncurry
     Type.List
     Type.Maybe
     Type.Meta

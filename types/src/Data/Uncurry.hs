@@ -24,7 +24,7 @@
 #endif
 #endif
 
-module Type.Function.Uncurry
+module Data.Uncurry
     ( Uncurry (Uncurry)
     )
 where
@@ -40,7 +40,7 @@ import           Data.Typeable (Typeable)
 #endif
 import           Foreign.Ptr (castPtr)
 import           Foreign.Storable (Storable, alignment, peek, poke, sizeOf)
-#if __GLASGOW_HASKELL__ >= 702
+#if MIN_VERSION_base(4, 4, 0)
 import           GHC.Generics
                      ( D1
                      , C1
@@ -50,7 +50,7 @@ import           GHC.Generics
                      , S1
                      , Rec0
                      , Rep
-#if __GLASGOW_HASKELL__ >= 711
+#if __GLASGOW_HASKELL__ >= 800
                      , FixityI (PrefixI)
                      , Meta (MetaCons, MetaData, MetaSel)
                      , SourceUnpackedness (NoSourceUnpackedness)
@@ -135,14 +135,14 @@ instance Storable (f a b) => Storable (Uncurry f (Pair a b)) where
     poke ptr (Uncurry a) = poke (castPtr ptr) a
 
 
-#if __GLASGOW_HASKELL__ >= 702
+#if MIN_VERSION_base(4, 4, 0)
 ------------------------------------------------------------------------------
 #if __GLASGOW_HASKELL__ >= 711
 type UncurryMetaData
-    = MetaData "Uncurry" "Data.Bifunctor.Uncurry" "main" False
-type UncurryMetaCons = MetaCons "Uncurry" PrefixI 'False
+    = 'MetaData "Uncurry" "Data.Bifunctor.Uncurry" "main" 'False
+type UncurryMetaCons = 'MetaCons "Uncurry" 'PrefixI 'False
 type UncurryMetaSel
-    = MetaSel Nothing NoSourceUnpackedness SourceStrict DecidedStrict
+    = 'MetaSel 'Nothing 'NoSourceUnpackedness 'SourceStrict 'DecidedStrict
 #else
 data UncurryMetaData
 data UncurryMetaCons
@@ -152,7 +152,7 @@ type UncurryMetaSel = NoSelector
 ------------------------------------------------------------------------------
 instance Datatype UncurryMetaData where
     datatypeName _ = "Uncurry"
-    moduleName _ = "Data.Bifunctor.Uncurry"
+    moduleName _ = "Data.Uncurry"
 
 
 ------------------------------------------------------------------------------

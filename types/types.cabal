@@ -23,13 +23,14 @@ library
     include
 
   exposed-modules:
+    Data.Field
+    Data.Uncurry
     GHC.TypeLits.Compat
     Type.Bits
     Type.Bool
     Type.Char
     Type.Either
     Type.Eq
-    Type.Function.Uncurry
     Type.List
     Type.Maybe
     Type.Meta
@@ -71,7 +72,7 @@ library
       build-depends: ghc-prim == 0.2.0.0
 
   if impl(ghc >= 7.10)
-    cpp-options: -DOverlapPragma -DOverlappingInstances=NoOverlappingInstances
+    cpp-options: -DOverlapPragma -DOverlappingInstances=NoImplicitParams
 
   ghc-options: -Wall
 

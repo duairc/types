@@ -28,6 +28,7 @@ where
 #if !MIN_VERSION_base(4, 8, 0)
 import           Control.Applicative (Applicative, (<*>), pure)
 #endif
+import           Control.Applicative (liftA2)
 import           Control.Monad (guard)
 import           Control.Monad.Fix (MonadFix, mfix)
 #if MIN_VERSION_base(4, 4, 0)
@@ -263,6 +264,95 @@ instance (KnownSymbol s, Storable a) => Storable (Field s a) where
 ------------------------------------------------------------------------------
 instance (KnownSymbol s, IsString a) => IsString (Field s a) where
     fromString = Field . fromString
+
+
+------------------------------------------------------------------------------
+instance (KnownSymbol s, Num a) => Num (Field s a) where
+    (+) = liftA2 (+)
+    (-) = liftA2 (-)
+    (*) = liftA2 (*)
+    negate = fmap negate
+    abs = fmap abs
+    signum = fmap signum
+    fromInteger = Field . fromInteger
+
+
+------------------------------------------------------------------------------
+instance (KnownSymbol s, Real a) => Real (Field s a) where
+    toRational (Field a) = toRational a
+
+
+------------------------------------------------------------------------------
+instance (KnownSymbol s, Integral a) => Integral (Field s a) where
+    quot = liftA2 quot
+    rem = liftA2 rem
+    div = liftA2 div
+    mod = liftA2 mod
+    quotRem (Field a) (Field b) = (Field a', Field b')
+      where
+        (a', b') = quotRem a b
+    divMod (Field a) (Field b) = (Field a', Field b')
+      where
+        (a', b') = divMod a b
+    toInteger (Field a) = toInteger a
+
+
+------------------------------------------------------------------------------
+instance (KnownSymbol s, Fractional a) => Fractional (Field s a) where
+    (/) = liftA2 (/)
+    recip = fmap recip
+    fromRational = Field . fromRational
+
+
+------------------------------------------------------------------------------
+instance (KnownSymbol s, Floating a) => Floating (Field s a) where
+    pi = Field pi
+    exp = fmap exp
+    log = fmap log
+    sqrt = fmap sqrt
+    sin = fmap sin
+    cos = fmap cos
+    tan = fmap tan
+    asin = fmap asin
+    acos = fmap acos
+    atan = fmap atan
+    sinh = fmap sinh
+    cosh = fmap cosh
+    tanh = fmap tanh
+    asinh = fmap asinh
+    acosh = fmap acosh
+    atanh = fmap atanh
+    (**) = liftA2 (**)
+    logBase = liftA2 (**)
+
+
+------------------------------------------------------------------------------
+instance (KnownSymbol s, RealFrac a) => RealFrac (Field s a) where
+    properFraction (Field x) = (a, Field b)
+      where
+        (a, b) = properFraction x
+    truncate (Field a) = truncate a
+    round (Field a) = round a
+    ceiling (Field a) = ceiling a
+    floor (Field a) = floor a
+
+
+------------------------------------------------------------------------------
+instance (KnownSymbol s, RealFloat a) => RealFloat (Field s a) where
+    floatRadix (Field a) = floatRadix a
+    floatDigits (Field a) = floatDigits a
+    floatRange (Field a) = floatRange a
+    decodeFloat (Field a) = decodeFloat a
+    encodeFloat m n = Field (encodeFloat m n)
+    exponent (Field a) = exponent a
+    significand = fmap significand
+    scaleFloat n = fmap (scaleFloat n)
+    isNaN (Field a) = isNaN a
+    isInfinite (Field a) = isInfinite a
+    isDenormalized (Field a) = isDenormalized a
+    isNegativeZero (Field a) = isNegativeZero a
+    isIEEE (Field a) = isIEEE a
+    atan2 = liftA2 atan2
 
 
 #if MIN_VERSION_base(4, 4, 0)

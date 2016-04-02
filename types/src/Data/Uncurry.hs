@@ -6,7 +6,6 @@
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE TypeFamilies #-}
 
 #include "kinds.h"
@@ -31,7 +30,9 @@ where
 
 -- base ----------------------------------------------------------------------
 import           Data.Ix (Ix, range, index, inRange)
+#if !MIN_VERSION_base(4, 8, 0)
 import           Data.Monoid (Monoid, mappend, mempty)
+#endif
 #if MIN_VERSION_base(4, 9, 0)
 import           Data.Semigroup (Semigroup, (<>))
 #endif
@@ -81,8 +82,6 @@ data Uncurry f (p :: KPair (KPoly1, KPoly2)) where
 #if defined(PolyTypeable)
   deriving (Typeable)
 #endif
-deriving instance (Read (f a b)) => Read (Uncurry f (Pair a b))
-deriving instance (Show (f a b)) => Show (Uncurry f (Pair a b))
 
 
 ------------------------------------------------------------------------------
@@ -93,6 +92,18 @@ instance Eq (f a b) => Eq (Uncurry f (Pair a b)) where
 ------------------------------------------------------------------------------
 instance Ord (f a b) => Ord (Uncurry f (Pair a b)) where
     compare (Uncurry a) (Uncurry b) = compare a b
+
+
+------------------------------------------------------------------------------
+instance Read (f a b) => Read (Uncurry f (Pair a b)) where
+    readsPrec p s = do
+        (f, s') <- readsPrec p s
+        return (Uncurry f, s')
+
+
+------------------------------------------------------------------------------
+instance Show (f a b) => Show (Uncurry f (Pair a b)) where
+    showsPrec p (Uncurry a) = showsPrec p a
 
 
 ------------------------------------------------------------------------------
@@ -129,17 +140,17 @@ instance Monoid (f a b) => Monoid (Uncurry f (Pair a b)) where
 
 ------------------------------------------------------------------------------
 instance Storable (f a b) => Storable (Uncurry f (Pair a b)) where
-    sizeOf (_ :: Uncurry f (Pair a b)) = sizeOf (undefined :: f a b)
-    alignment (_ :: Uncurry f (Pair a b)) = alignment (undefined :: f a b)
+    sizeOf _ = sizeOf (undefined :: f a b)
+    alignment _ = alignment (undefined :: f a b)
     peek = fmap Uncurry . peek . castPtr
     poke ptr (Uncurry a) = poke (castPtr ptr) a
 
 
 #if MIN_VERSION_base(4, 4, 0)
 ------------------------------------------------------------------------------
-#if __GLASGOW_HASKELL__ >= 711
+#if __GLASGOW_HASKELL__ >= 800
 type UncurryMetaData
-    = 'MetaData "Uncurry" "Data.Bifunctor.Uncurry" "main" 'False
+    = 'MetaData "Uncurry" "Data.Uncurry" "types" 'False
 type UncurryMetaCons = 'MetaCons "Uncurry" 'PrefixI 'False
 type UncurryMetaSel
     = 'MetaSel 'Nothing 'NoSourceUnpackedness 'SourceStrict 'DecidedStrict

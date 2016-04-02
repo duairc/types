@@ -53,7 +53,9 @@ import           Data.Functor.Classes
                      )
 #endif
 import           Data.Ix (Ix, range, index, inRange)
+#if !MIN_VERSION_base(4, 8, 0)
 import           Data.Monoid (Monoid, mappend, mempty)
+#endif
 #if MIN_VERSION_base(4, 9, 0)
 import           Data.Semigroup (Semigroup, (<>))
 #endif
@@ -260,7 +262,7 @@ instance (KnownSymbol s, Storable a) => Storable (Field s a) where
 #if MIN_VERSION_base(4, 4, 0)
 ------------------------------------------------------------------------------
 #if MIN_VERSION_base(4, 9, 0)
-type FieldMetaData = 'MetaData "Field" "Data.Field" "main" 'False
+type FieldMetaData = 'MetaData "Field" "Data.Field" "types" 'False
 type FieldMetaCons = 'MetaCons "Field" 'PrefixI 'False
 type FieldMetaSel
     = 'MetaSel 'Nothing 'NoSourceUnpackedness 'SourceStrict 'DecidedStrict

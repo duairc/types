@@ -95,10 +95,9 @@ import           Unsafe.Coerce (unsafeCoerce)
 
 
 -- types ---------------------------------------------------------------------
+#ifndef UseTypeLits
 import           Type.Bool (True)
 import           Type.Meta (Known, val, Proxy (Proxy), (:~:) (Refl))
-#if !defined(UseTypeLits) && defined(DataPolyKinds)
-import           Type.Natural (Nat)
 #endif
 #ifndef UseTypeLits
 import           Type.Natural
@@ -111,9 +110,11 @@ import           Type.Natural
                      , One
                      )
 #endif
+#ifndef UseTypeLits
 import qualified Type.Num as N ((:+), (:-), (:*), (:^))
 import           Type.Ord (Compare)
 import qualified Type.Ord as O ((:<=))
+#endif
 #if !defined(UseTypeLits) && defined(DataPolyKinds)
 import           Type.String (Symbol)
 #endif

@@ -10,7 +10,7 @@
 #endif
 
 #ifdef SafeHaskell
-#if defined(DataPolyKinds) && __GLASGOW_HASKELL__ >= 706
+#if defined(DataPolyKinds) && __GLASGOW_HASKELL__ >= 706 && __GLASGOW_HASKELL__ < 800
 {-# LANGUAGE Trustworthy #-}
 #else
 {-# LANGUAGE Safe #-}

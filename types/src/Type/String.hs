@@ -18,7 +18,7 @@
 #endif
 
 #ifdef SafeHaskell
-#if __GLASGOW_HASKELL__ >= 708
+#if __GLASGOW_HASKELL__ >= 708 && __GLASGOW_HASKELL__ < 800
 {-# LANGUAGE Trustworthy #-}
 #else
 {-# LANGUAGE Safe #-}

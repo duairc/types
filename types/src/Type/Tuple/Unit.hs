@@ -30,7 +30,7 @@ import           Data.Typeable (Typeable)
 
 
 -- types ---------------------------------------------------------------------
-import {-# SOURCE #-} Type.Bool (True)
+import           Type.Bool (True)
 import           Type.Eq ((:==))
 import           Type.Meta (Known, val)
 import           Type.Ord (Compare)

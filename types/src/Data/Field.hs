@@ -18,6 +18,10 @@
 {-# LANGUAGE Trustworthy #-}
 #endif
 
+#if MIN_VERSION_base(4, 7, 0)
+{-# OPTIONS_GHC -fno-warn-deprecations #-}
+#endif
+
 module Data.Field
     ( Field (Field)
     , field
@@ -34,6 +38,49 @@ import           Control.Monad.Fix (MonadFix, mfix)
 #if MIN_VERSION_base(4, 4, 0)
 import           Control.Monad.Zip (MonadZip, mzipWith, munzip)
 #endif
+import           Data.Bits
+                     ( Bits
+#if MIN_VERSION_base(4, 7, 0)
+                     , FiniteBits
+#endif
+                     , (.&.)
+                     , (.|.)
+                     , bit
+                     , bitSize
+#if MIN_VERSION_base(4, 7, 0)
+                     , bitSizeMaybe
+#endif
+                     , clearBit
+                     , complement
+                     , complementBit
+#if MIN_VERSION_base(4, 8, 0)
+                     , countLeadingZeros
+                     , countTrailingZeros
+#endif
+#if MIN_VERSION_base(4, 7, 0)
+                     , finiteBitSize
+#endif
+                     , isSigned
+#if MIN_VERSION_base(4, 5, 0)
+                     , popCount
+#endif
+                     , rotate
+                     , rotateL
+                     , rotateR
+                     , setBit
+                     , shift
+                     , shiftL
+                     , shiftR
+                     , testBit
+#if MIN_VERSION_base(4, 5, 0)
+                     , unsafeShiftL
+                     , unsafeShiftR
+#endif
+                     , xor
+#if MIN_VERSION_base(4, 7, 0)
+                     , zeroBits
+#endif
+                     )
 #if !MIN_VERSION_base(4, 8, 0)
 import           Data.Foldable (Foldable, foldMap, foldr)
 #endif
@@ -262,11 +309,6 @@ instance (KnownSymbol s, Storable a) => Storable (Field s a) where
 
 
 ------------------------------------------------------------------------------
-instance (KnownSymbol s, IsString a) => IsString (Field s a) where
-    fromString = Field . fromString
-
-
-------------------------------------------------------------------------------
 instance (KnownSymbol s, Num a) => Num (Field s a) where
     (+) = liftA2 (+)
     (-) = liftA2 (-)
@@ -353,6 +395,50 @@ instance (KnownSymbol s, RealFloat a) => RealFloat (Field s a) where
     isNegativeZero (Field a) = isNegativeZero a
     isIEEE (Field a) = isIEEE a
     atan2 = liftA2 atan2
+
+
+------------------------------------------------------------------------------
+instance (KnownSymbol s, Bits a) => Bits (Field s a) where
+    Field a .&. Field b = Field (a .&. b)
+    Field a .|. Field b = Field (a .|. b)
+    xor (Field a) (Field b) = Field (xor a b)
+    complement (Field a) = Field (complement a)
+    shift (Field a) i = Field (shift a i)
+    shiftL (Field a) i = Field (shiftL a i)
+    shiftR (Field a) i = Field (shiftR a i)
+    rotate (Field a) i = Field (rotate a i)
+    rotateL (Field a) i = Field (rotateL a i)
+    rotateR (Field a) i = Field (rotateR a i)
+    bit i = Field (bit i)
+    setBit (Field a) i = Field (setBit a i)
+    clearBit (Field a) i = Field (clearBit a i)
+    complementBit (Field a) i = Field (complementBit a i)
+    testBit (Field a) i = testBit a i
+    isSigned (Field a) = isSigned a
+    bitSize (Field a) = bitSize a
+#if MIN_VERSION_base(4, 5, 0)
+    unsafeShiftL (Field a) i = Field (unsafeShiftL a i)
+    unsafeShiftR (Field a) i = Field (unsafeShiftR a i)
+    popCount (Field a) = popCount a
+#endif
+#if MIN_VERSION_base(4, 7, 0)
+    bitSizeMaybe (Field a) = bitSizeMaybe a
+    zeroBits = Field zeroBits
+
+
+------------------------------------------------------------------------------
+instance (KnownSymbol s, FiniteBits a) => FiniteBits (Field s a) where
+    finiteBitSize (Field a) = finiteBitSize a
+#if MIN_VERSION_base(4, 8, 0)
+    countLeadingZeros (Field a) = countLeadingZeros a
+    countTrailingZeros (Field a) = countTrailingZeros a
+#endif
+#endif
+
+
+------------------------------------------------------------------------------
+instance (KnownSymbol s, IsString a) => IsString (Field s a) where
+    fromString = Field . fromString
 
 
 #if MIN_VERSION_base(4, 4, 0)

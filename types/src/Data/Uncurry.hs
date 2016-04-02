@@ -23,12 +23,59 @@
 #endif
 #endif
 
+#if MIN_VERSION_base(4, 7, 0)
+{-# OPTIONS_GHC -fno-warn-deprecations #-}
+#endif
+
 module Data.Uncurry
     ( Uncurry (Uncurry)
     )
 where
 
 -- base ----------------------------------------------------------------------
+import           Data.Bits
+                     ( Bits
+#if MIN_VERSION_base(4, 7, 0)
+                     , FiniteBits
+#endif
+                     , (.&.)
+                     , (.|.)
+                     , bit
+                     , bitSize
+#if MIN_VERSION_base(4, 7, 0)
+                     , bitSizeMaybe
+#endif
+                     , clearBit
+                     , complement
+                     , complementBit
+#if MIN_VERSION_base(4, 8, 0)
+                     , countLeadingZeros
+                     , countTrailingZeros
+#endif
+#if MIN_VERSION_base(4, 7, 0)
+                     , finiteBitSize
+#endif
+                     , isSigned
+#if MIN_VERSION_base(4, 5, 0)
+                     , popCount
+#endif
+                     , rotate
+                     , rotateL
+                     , rotateR
+                     , setBit
+                     , shift
+                     , shiftL
+                     , shiftR
+                     , testBit
+#if MIN_VERSION_base(4, 5, 0)
+                     , unsafeShiftL
+                     , unsafeShiftR
+#endif
+                     , xor
+#if MIN_VERSION_base(4, 7, 0)
+                     , zeroBits
+#endif
+                     )
 import           Data.Ix (Ix, range, index, inRange)
 #if !MIN_VERSION_base(4, 8, 0)
 import           Data.Monoid (Monoid, mappend, mempty)
@@ -148,11 +195,6 @@ instance Storable (f a b) => Storable (Uncurry f (Pair a b)) where
 
 
 ------------------------------------------------------------------------------
-instance IsString (f a b) => IsString (Uncurry f (Pair a b)) where
-    fromString = Uncurry . fromString
-
-
-------------------------------------------------------------------------------
 instance Num (f a b) => Num (Uncurry f (Pair a b)) where
     (+) = umap2 (+)
     (-) = umap2 (-)
@@ -239,6 +281,50 @@ instance RealFloat (f a b) => RealFloat (Uncurry f (Pair a b)) where
     isNegativeZero (Uncurry a) = isNegativeZero a
     isIEEE (Uncurry a) = isIEEE a
     atan2 = umap2 atan2
+
+
+------------------------------------------------------------------------------
+instance Bits (f a b) => Bits (Uncurry f (Pair a b)) where
+    Uncurry a .&. Uncurry b = Uncurry (a .&. b)
+    Uncurry a .|. Uncurry b = Uncurry (a .|. b)
+    xor (Uncurry a) (Uncurry b) = Uncurry (xor a b)
+    complement (Uncurry a) = Uncurry (complement a)
+    shift (Uncurry a) i = Uncurry (shift a i)
+    shiftL (Uncurry a) i = Uncurry (shiftL a i)
+    shiftR (Uncurry a) i = Uncurry (shiftR a i)
+    rotate (Uncurry a) i = Uncurry (rotate a i)
+    rotateL (Uncurry a) i = Uncurry (rotateL a i)
+    rotateR (Uncurry a) i = Uncurry (rotateR a i)
+    bit i = Uncurry (bit i)
+    setBit (Uncurry a) i = Uncurry (setBit a i)
+    clearBit (Uncurry a) i = Uncurry (clearBit a i)
+    complementBit (Uncurry a) i = Uncurry (complementBit a i)
+    testBit (Uncurry a) i = testBit a i
+    isSigned (Uncurry a) = isSigned a
+    bitSize (Uncurry a) = bitSize a
+#if MIN_VERSION_base(4, 5, 0)
+    unsafeShiftL (Uncurry a) i = Uncurry (unsafeShiftL a i)
+    unsafeShiftR (Uncurry a) i = Uncurry (unsafeShiftR a i)
+    popCount (Uncurry a) = popCount a
+#endif
+#if MIN_VERSION_base(4, 7, 0)
+    bitSizeMaybe (Uncurry a) = bitSizeMaybe a
+    zeroBits = Uncurry zeroBits
+
+
+------------------------------------------------------------------------------
+instance FiniteBits (f a b) => FiniteBits (Uncurry f (Pair a b)) where
+    finiteBitSize (Uncurry a) = finiteBitSize a
+#if MIN_VERSION_base(4, 8, 0)
+    countLeadingZeros (Uncurry a) = countLeadingZeros a
+    countTrailingZeros (Uncurry a) = countTrailingZeros a
+#endif
+#endif
+
+
+------------------------------------------------------------------------------
+instance IsString (f a b) => IsString (Uncurry f (Pair a b)) where
+    fromString = Uncurry . fromString
 
 
 ------------------------------------------------------------------------------

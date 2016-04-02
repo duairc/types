@@ -59,6 +59,7 @@ import           Data.Monoid (Monoid, mappend, mempty)
 #if MIN_VERSION_base(4, 9, 0)
 import           Data.Semigroup (Semigroup, (<>))
 #endif
+import           Data.String (IsString, fromString)
 #if !MIN_VERSION_base(4, 8, 0)
 import           Data.Traversable (Traversable, traverse)
 #endif
@@ -257,6 +258,11 @@ instance (KnownSymbol s, Storable a) => Storable (Field s a) where
     alignment _ = alignment (undefined :: a)
     peek = fmap Field . peek . castPtr
     poke ptr (Field a) = poke (castPtr ptr) a
+
+
+------------------------------------------------------------------------------
+instance (KnownSymbol s, IsString a) => IsString (Field s a) where
+    fromString = Field . fromString
 
 
 #if MIN_VERSION_base(4, 4, 0)

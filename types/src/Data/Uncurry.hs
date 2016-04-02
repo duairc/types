@@ -36,6 +36,7 @@ import           Data.Monoid (Monoid, mappend, mempty)
 #if MIN_VERSION_base(4, 9, 0)
 import           Data.Semigroup (Semigroup, (<>))
 #endif
+import           Data.String (IsString, fromString)
 #if defined(PolyTypeable)
 import           Data.Typeable (Typeable)
 #endif
@@ -144,6 +145,11 @@ instance Storable (f a b) => Storable (Uncurry f (Pair a b)) where
     alignment _ = alignment (undefined :: f a b)
     peek = fmap Uncurry . peek . castPtr
     poke ptr (Uncurry a) = poke (castPtr ptr) a
+
+
+------------------------------------------------------------------------------
+instance IsString (f a b) => IsString (Uncurry f (Pair a b)) where
+    fromString = Uncurry . fromString
 
 
 #if MIN_VERSION_base(4, 4, 0)

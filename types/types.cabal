@@ -1,7 +1,7 @@
 name:           types
 version:        0.1
 synopsis:       A "standard library" for type-level programming compatible with older versions of GHC.
-license:        BSD3
+license:        MPL-2.0
 license-file:   LICENSE
 author:         Shane O'Brien
 maintainer:     shane@duairc.com

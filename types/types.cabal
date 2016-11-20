@@ -23,8 +23,6 @@ library
     include
 
   exposed-modules:
-    Data.Field
-    Data.Uncurry
     GHC.TypeLits.Compat
     Type.Bits
     Type.Bool

@@ -6,14 +6,16 @@
 {-# LANGUAGE Trustworthy #-}
 #endif
 
+{-# OPTIONS_GHC -fno-warn-orphans #-}
+
 module Type.TH
     ( FromValue
     , type_
     , typeQ
     , proxy
     , proxyQ
-    , synonym
-    , synonymQ
+    , num
+    , string
     )
 where
 
@@ -21,7 +23,7 @@ where
 import           Data.Bits (shiftR, testBit)
 import qualified Data.Char as C (Char)
 import           Data.String (IsString, fromString)
-#if __GLASGOW_HASKELL__ >= 710
+#if MIN_VERSION_base(4, 8, 0)
 import qualified Numeric.Natural as N (Natural)
 #endif
 import           Prelude hiding (Char, String)
@@ -30,20 +32,18 @@ import qualified Prelude as S (String)
 
 -- template-haskell ----------------------------------------------------------
 import           Language.Haskell.TH
-                     ( Dec (TySynD)
-                     , Exp (SigE, ConE)
+                     ( Exp (SigE, ConE)
                      , Q
                      , Type
                          ( AppT
                          , ConT
-#ifdef TypeLits
+#ifdef UseTypeLits
                          , LitT
 #endif
                          )
-#ifdef TypeLits
+#ifdef UseTypeLits
                      , TyLit (NumTyLit, StrTyLit)
 #endif
-                     , mkName
                      )
 
 
@@ -57,7 +57,9 @@ import           Type.Meta (Proxy (Proxy))
 import           Type.Natural (Natural)
 import           Type.Num ((:+), (:*), (:-))
 import           Type.Ordering (LT, EQ, GT)
+#ifndef UseTypeLits
 import           Type.String (String)
+#endif
 import           Type.Tuple.Unit (Unit)
 import           Type.Tuple.Pair (Pair)
 import           Type.Tuple.Triplet (Triplet)
@@ -88,9 +90,9 @@ instance FromValue Ordering where
 
 ------------------------------------------------------------------------------
 instance FromValue C.Char where
-    type_ c = foldl AppT (ConT ''Char) (map (bit c) [0..31])
+    type_ c = foldl AppT (ConT ''Char) (map bit [0..31])
       where
-        bit c n = ConT (if testBit (fromEnum c) n then ''True else ''False)
+        bit n = ConT (if testBit (fromEnum c) n then ''True else ''False)
 
 
 ------------------------------------------------------------------------------
@@ -103,7 +105,7 @@ instance FromValue Integer where
         go n = AppT (AppT (ConT ''Cons) (type_ (testBit n 0))) (go (shiftR n 1))
 
 
-#if __GLASGOW_HASKELL__ >= 710
+#if MIN_VERSION_base(4, 8, 0)
 ------------------------------------------------------------------------------
 instance FromValue N.Natural where
     type_ = type_ . toInteger
@@ -227,7 +229,7 @@ instance
   =>
     FromValue (a, b, c, d, e, f, g)
   where
-    type_ (a, b, c, d, e, f, g) = foldl AppT (ConT ''Triplet)
+    type_ (a, b, c, d, e, f, g) = foldl AppT (ConT ''Septet)
         [ type_ a
         , type_ b
         , type_ c
@@ -244,23 +246,31 @@ typeQ = return . type_
 
 
 ------------------------------------------------------------------------------
-proxy :: FromValue a => a -> Exp
-proxy = makeProxy . type_
+proxy :: Type -> Exp
+proxy = makeProxy
 
 
 ------------------------------------------------------------------------------
-proxyQ :: FromValue a => a -> Q Exp
-proxyQ = return . proxy
+proxyQ :: Q Type -> Q Exp
+proxyQ = fmap proxy
 
 
 ------------------------------------------------------------------------------
-synonym :: FromValue a => S.String -> a -> [Dec]
-synonym name value = [TySynD (mkName name) [] (type_ value)]
+num :: Integer -> Type
+#ifdef UseTypeLits
+num = LitT . NumTyLit
+#else
+num = type_
+#endif
 
 
 ------------------------------------------------------------------------------
-synonymQ :: FromValue a => S.String -> a -> Q [Dec]
-synonymQ name value = return (synonym name value)
+string :: S.String -> Type
+#ifdef UseTypeLits
+string = LitT . StrTyLit
+#else
+string = AppT (ConT ''String) . type_
+#endif
 
 
 ------------------------------------------------------------------------------
@@ -270,11 +280,7 @@ synonymQ name value = return (synonym name value)
 
 ------------------------------------------------------------------------------
 instance IsString (Q Type) where
-#ifdef TypeLits
-    fromString = return . LitT . StrTyLit
-#else
-    fromString = return . AppT (ConT ''String) . type_
-#endif
+    fromString = return . string
 
 
 ------------------------------------------------------------------------------
@@ -282,7 +288,7 @@ instance IsString (Q Exp) where
     fromString = fmap makeProxy . fromString
 
 
-#if __GLASGOW_HASKELL__ < 704
+#if !MIN_VERSION_base(4, 5, 0)
 ------------------------------------------------------------------------------
 instance Show (Q Type) where
     showsPrec _ _ = showString "Q Type"
@@ -310,14 +316,10 @@ instance Num (Q Type) where
         return $ AppT (AppT (ConT ''(:*)) a') b'
     abs a = a
     signum _ = fromInteger 1
-#ifdef TypeLits
-    fromInteger = return . LitT . NumTyLit
-#else
-    fromInteger = return . type_
-#endif
+    fromInteger = return . num
 
 
-#if __GLASGOW_HASKELL__ < 704
+#if !MIN_VERSION_base(4, 5, 0)
 ------------------------------------------------------------------------------
 instance Show (Q Exp) where
     showsPrec _ _ = showString "Q Exp"
@@ -346,8 +348,8 @@ makeProxy = SigE (ConE 'Proxy) . AppT (ConT ''Proxy)
 
 ------------------------------------------------------------------------------
 unProxy :: Q Exp -> Q Type
-unProxy exp = do
-    e <- exp
+unProxy exp_ = do
+    e <- exp_
     case e of
         SigE (ConE p) (AppT (ConT p') t)
             | p == 'Proxy && p' == ''Proxy -> return t

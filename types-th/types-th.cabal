@@ -1,7 +1,7 @@
 name:           types-th
 version:        0.1
 synopsis:       Template Haskell backed type-level literals for use with the types library.
-license:        BSD3
+license:        MPL-2.0
 license-file:   LICENSE
 author:         Shane O'Brien
 maintainer:     shane@duairc.com
@@ -19,6 +19,9 @@ library
   hs-source-dirs:
     src
 
+  include-dirs:
+    include
+
   exposed-modules:
     Type.TH
 
@@ -28,10 +31,13 @@ library
     types >= 0.1 && < 0.2
 
   if impl(ghc >= 7.8)
-    cpp-options: -DTypeLits
+    cpp-options: -DUseTypeLits
 
   if impl(ghc >= 7.2)
     cpp-options: -DSafeHaskell
+
+  if impl(ghc >= 7.10)
+    cpp-options: -DOverlapPragma -DOverlappingInstances=NoImplicitParams
 
   ghc-options: -Wall
 

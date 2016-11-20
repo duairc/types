@@ -522,6 +522,7 @@ data a :~: b where
   deriving (Typeable)
 #endif
 deriving instance Show (a :~: b)
+infix 4 :~:
 
 
 ------------------------------------------------------------------------------

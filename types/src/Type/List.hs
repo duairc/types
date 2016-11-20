@@ -24,7 +24,12 @@
 module Type.List
     ( Cons
     , Nil
+    , Head
+    , Tail
     , Reverse
+    , Snoc
+    , Init
+    , Last
     )
 where
 
@@ -109,6 +114,26 @@ type instance Cons a as :<> Cons b bs = Cons a (as :<> Cons b bs)
 
 
 ------------------------------------------------------------------------------
+type family Head (as :: KList (KPoly1)) :: KPoly1
+#ifdef ClosedTypeFamilies
+  where
+#else
+type instance
+#endif
+    Head (Cons a _as) = a
+
+
+------------------------------------------------------------------------------
+type family Tail (as :: KList (KPoly1)) :: KList (KPoly1)
+#ifdef ClosedTypeFamilies
+  where
+#else
+type instance
+#endif
+    Tail (Cons _a as) = as
+
+
+------------------------------------------------------------------------------
 type family Reverse (as :: KList (KPoly1)) :: KList (KPoly1)
 #ifdef ClosedTypeFamilies
   where
@@ -132,3 +157,48 @@ type instance
 type instance
 #endif
     ReverseInner (Cons x xs) a = ReverseInner xs (Cons x a)
+
+
+------------------------------------------------------------------------------
+type family Snoc (as :: KList (KPoly1)) (a :: KPoly1) :: KList (KPoly1)
+#ifdef ClosedTypeFamilies
+  where
+#endif
+#ifndef ClosedTypeFamilies
+type instance
+#endif
+    Snoc Nil b = Cons b Nil
+#ifndef ClosedTypeFamilies
+type instance
+#endif
+    Snoc (Cons a as) b = Cons a (Snoc as b)
+
+
+------------------------------------------------------------------------------
+type family Init (as :: KList (KPoly1)) :: KList (KPoly1)
+#ifdef ClosedTypeFamilies
+  where
+#endif
+#ifndef ClosedTypeFamilies
+type instance
+#endif
+    Init (Cons a Nil) = Nil
+#ifndef ClosedTypeFamilies
+type instance
+#endif
+    Init (Cons a (Cons a' as)) = Cons a (Init (Cons a' as))
+
+
+------------------------------------------------------------------------------
+type family Last (as :: KList (KPoly1)) :: KPoly1
+#ifdef ClosedTypeFamilies
+  where
+#endif
+#ifndef ClosedTypeFamilies
+type instance
+#endif
+    Last (Cons a Nil) = a
+#ifndef ClosedTypeFamilies
+type instance
+#endif
+    Last (Cons _a (Cons a as)) = Last (Cons a as)

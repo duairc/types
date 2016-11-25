@@ -21,6 +21,10 @@
 {-# LANGUAGE ExplicitNamespaces #-}
 #endif
 
+#if __GLASGOW_HASKELL__ >= 800
+{-# OPTIONS_GHC -fno-warn-orphans #-}
+#endif
+
 module GHC.Generics.Compat
     ( V1
     , U1 (U1)
@@ -109,10 +113,12 @@ import          Numeric.Natural (Natural)
 
 
 -- types ---------------------------------------------------------------------
-#ifdef DataPolyKinds
+#if defined(DataPolyKinds) && __GLASGOW_HASKELL__ < 800
 import          GHC.TypeLits.Compat (Nat, Symbol)
 #endif
+#if __GLASGOW_HASKELL__ < 800
 import          Type.Maybe (Just, Nothing)
+#endif
 import          Type.Meta (Known, Proxy (Proxy), val)
 
 
@@ -127,9 +133,6 @@ type NatVal = Integer
 
 ------------------------------------------------------------------------------
 type Nat = NatVal
-
-
-------------------------------------------------------------------------------
 type Symbol = String
 #endif
 #if __GLASGOW_HASKELL__ < 800
@@ -175,214 +178,74 @@ data SourceUnpackedness
 #endif
 
 
+------------------------------------------------------------------------------
 #ifdef DataPolyKinds
-------------------------------------------------------------------------------
 type PrefixI = 'PrefixI
-
-
-------------------------------------------------------------------------------
 type InfixI = 'InfixI
-
-
-------------------------------------------------------------------------------
 type LeftAssociative = 'LeftAssociative
-
-
-------------------------------------------------------------------------------
 type RightAssociative = 'RightAssociative
-
-
-------------------------------------------------------------------------------
 type NotAssociative = 'NotAssociative
-
-
-------------------------------------------------------------------------------
+#if __GLASGOW_HASKELL__ >= 800
+type MetaData = 'MetaData
+type MetaCons = 'MetaCons
+type MetaSel = 'MetaSel
+#else
+-- D1 etc will want a *-kinded type argument on GHC < 8; use Proxy to get this
 type MetaData n m p nt = Proxy ('MetaData n m p nt)
-
-
-------------------------------------------------------------------------------
 type MetaCons n f s = Proxy ('MetaCons n f s)
-
-
-------------------------------------------------------------------------------
 type MetaSel mn su ss ds = Proxy ('MetaSel mn su ss ds)
-
-
-------------------------------------------------------------------------------
+#endif
 type DecidedLazy = 'DecidedLazy
-
-
-------------------------------------------------------------------------------
 type DecidedStrict = 'DecidedStrict
-
-
-------------------------------------------------------------------------------
 type DecidedUnpack = 'DecidedUnpack
-
-
-------------------------------------------------------------------------------
 type NoSourceStrictness = 'NoSourceStrictness
-
-
-------------------------------------------------------------------------------
 type SourceLazy = 'SourceLazy
-
-
-------------------------------------------------------------------------------
 type SourceStrict = 'SourceStrict
-
-
-------------------------------------------------------------------------------
 type NoSourceUnpackedness = 'NoSourceUnpackedness
-
-
-------------------------------------------------------------------------------
 type SourceNoUnpack = 'SourceNoUnpack
-
-
-------------------------------------------------------------------------------
 type SourceUnpack = 'SourceUnpack
 #else
-------------------------------------------------------------------------------
 data PrefixI
-
-
-------------------------------------------------------------------------------
 data InfixI a n
-
-
-------------------------------------------------------------------------------
 data LeftAssociative
-
-
-------------------------------------------------------------------------------
 data RightAssociative
-
-
-------------------------------------------------------------------------------
 data NotAssociative
-
-
-------------------------------------------------------------------------------
 data MetaData n m p nt
-
-
-------------------------------------------------------------------------------
 data MetaCons n f s
-
-
-------------------------------------------------------------------------------
 data MetaSel mn su ss ds
-
-
-------------------------------------------------------------------------------
 data DecidedLazy
-
-
-------------------------------------------------------------------------------
 data DecidedStrict
-
-
-------------------------------------------------------------------------------
 data DecidedUnpack
-
-
-------------------------------------------------------------------------------
 data NoSourceStrictness
-
-
-------------------------------------------------------------------------------
 data SourceLazy
-
-
-------------------------------------------------------------------------------
 data SourceStrict
-
-
-------------------------------------------------------------------------------
 data NoSourceUnpackedness
-
-
-------------------------------------------------------------------------------
 data SourceNoUnpack
-
-
-------------------------------------------------------------------------------
 data SourceUnpack
 #endif
 
 
 ------------------------------------------------------------------------------
-instance (Known Fixity PrefixI) where
-    val _ = Prefix
-
-
-------------------------------------------------------------------------------
+instance (Known Fixity PrefixI) where val _ = Prefix
 instance (Known Associativity a, Known NatVal n) =>
     Known Fixity (InfixI a n)
   where
     val _ =
         Infix (val (Proxy :: Proxy a)) (fromIntegral (val (Proxy :: Proxy n)))
-
-
-------------------------------------------------------------------------------
-instance Known Associativity LeftAssociative where
-    val _ = LeftAssociative
-
-
-------------------------------------------------------------------------------
-instance Known Associativity RightAssociative where
-    val _ = RightAssociative
-
-
-------------------------------------------------------------------------------
-instance Known Associativity NotAssociative where
-    val _ = NotAssociative
-
-
-------------------------------------------------------------------------------
-instance Known DecidedStrictness DecidedLazy where
-    val _ = DecidedLazy
-
-
-------------------------------------------------------------------------------
-instance Known DecidedStrictness DecidedStrict where
-    val _ = DecidedStrict
-
-
-------------------------------------------------------------------------------
-instance Known DecidedStrictness DecidedUnpack where
-    val _ = DecidedUnpack
-
-
-------------------------------------------------------------------------------
+instance Known Associativity LeftAssociative where val _ = LeftAssociative
+instance Known Associativity RightAssociative where val _ = RightAssociative
+instance Known Associativity NotAssociative where val _ = NotAssociative
+instance Known DecidedStrictness DecidedLazy where val _ = DecidedLazy
+instance Known DecidedStrictness DecidedStrict where val _ = DecidedStrict
+instance Known DecidedStrictness DecidedUnpack where val _ = DecidedUnpack
 instance Known SourceStrictness NoSourceStrictness where
     val _ = NoSourceStrictness
-
-
-------------------------------------------------------------------------------
-instance Known SourceStrictness SourceLazy where
-    val _ = SourceLazy
-
-
-------------------------------------------------------------------------------
-instance Known SourceStrictness SourceStrict where
-    val _ = SourceStrict
-
-
-------------------------------------------------------------------------------
+instance Known SourceStrictness SourceLazy where val _ = SourceLazy
+instance Known SourceStrictness SourceStrict where val _ = SourceStrict
 instance Known SourceUnpackedness NoSourceUnpackedness where
     val _ = NoSourceUnpackedness
-
-
-------------------------------------------------------------------------------
-instance Known SourceUnpackedness SourceNoUnpack where
-    val _ = SourceNoUnpack
-
-
-------------------------------------------------------------------------------
-instance Known SourceUnpackedness SourceUnpack where
-    val _ = SourceUnpack
+instance Known SourceUnpackedness SourceNoUnpack where val _ = SourceNoUnpack
+instance Known SourceUnpackedness SourceUnpack where val _ = SourceUnpack
 #if __GLASGOW_HASKELL__ < 800
 
 

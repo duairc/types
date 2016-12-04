@@ -40,10 +40,12 @@ module Type.Meta
     , Some (Some)
     , someVal
     , same
-    , (:~:) (Refl)
     , Proxy (Proxy)
     , Void
     , absurd
+    , (:~:) (Refl)
+    , TestEquality
+    , testEquality
     )
 where
 
@@ -111,7 +113,7 @@ import           Data.Traversable
                      )
 #endif
 #if __GLASGOW_HASKELL__ >= 708
-import           Data.Type.Equality ((:~:) (Refl))
+import           Data.Type.Equality ((:~:) (Refl), TestEquality, testEquality)
 #endif
 #if __GLASGOW_HASKELL__ < 710
 import           Data.Typeable (Typeable)
@@ -552,6 +554,16 @@ instance a ~ b => Bounded (a :~: b) where
 instance Category (:~:) where
     id = Refl
     Refl . Refl = Refl
+
+
+------------------------------------------------------------------------------
+class TestEquality f where
+    testEquality :: f a -> f b -> Maybe (a :~: b)
+
+
+------------------------------------------------------------------------------
+instance TestEquality ((:~:) a) where
+    testEquality Refl Refl = Just Refl
 
 
 ------------------------------------------------------------------------------

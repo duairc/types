@@ -36,7 +36,7 @@ import           Data.Typeable (Typeable)
 -- types ---------------------------------------------------------------------
 import {-# SOURCE #-} Type.Bool ((:&&))
 import           Type.Eq ((:==))
-import           Type.Meta (Known, val, Proxy (Proxy))
+import           Type.Meta (Known, Val, val, Proxy (Proxy))
 import           Type.Ord (Compare)
 import           Type.Semigroup ((:<>))
 
@@ -55,7 +55,8 @@ data Pair a b
 
 
 ------------------------------------------------------------------------------
-instance (Known ra a, Known rb b) => Known (ra, rb) (Pair a b) where
+instance (Known a, Known b) => Known (Pair a b) where
+    type Val (Pair a b) = (Val a, Val b)
     val _ = (val (Proxy :: Proxy a), val (Proxy :: Proxy b))
 
 

@@ -40,7 +40,7 @@ import           Data.Typeable (Typeable)
 import           Type.Bool (True, False)
 #ifndef DataPolyKinds
 import           Type.Eq ((:==))
-import           Type.Meta (Known, val, Proxy (Proxy), Void)
+import           Type.Meta (Known, Val, val, Proxy (Proxy), Void)
 import           Type.Ord (Compare)
 import           Type.Ordering (LT, GT)
 import           Type.Semigroup ((:<>))
@@ -60,7 +60,8 @@ data Left a
 
 
 ------------------------------------------------------------------------------
-instance Known r a => Known (Either r Void) (Left a) where
+instance Known a => Known (Left a) where
+    type Val (Left a) = Either (Val a) Void
     val _ = Left (val (Proxy :: Proxy a))
 
 
@@ -70,7 +71,8 @@ data Right a
 
 
 ------------------------------------------------------------------------------
-instance Known r a => Known (Either Void r) (Right a) where
+instance Known a => Known (Right a) where
+    type Val (Right a) = Either Void (Val a)
     val _ = Right (val (Proxy :: Proxy a))
 
 

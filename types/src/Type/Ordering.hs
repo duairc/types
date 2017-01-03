@@ -35,7 +35,7 @@ import           Data.Typeable (Typeable)
 #endif
 -- types ---------------------------------------------------------------------
 #ifndef DataPolyKinds
-import           Type.Meta (Known, val)
+import           Type.Meta (Known, Val, val)
 #endif
 import           Type.Semigroup ((:<>))
 
@@ -68,19 +68,22 @@ data GT
 
 
 ------------------------------------------------------------------------------
-instance Known Ordering LT where
+instance Known LT where
+    type Val LT = Ordering
     val _ = LT
     {-# INLINE val #-}
 
 
 ------------------------------------------------------------------------------
-instance Known Ordering EQ where
+instance Known EQ where
+    type Val EQ = Ordering
     val _ = EQ
     {-# INLINE val #-}
 
 
 ------------------------------------------------------------------------------
-instance Known Ordering GT where
+instance Known GT where
+    type Val GT = Ordering
     val _ = GT
     {-# INLINE val #-}
 #endif

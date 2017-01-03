@@ -39,7 +39,7 @@ import           Data.Typeable (Typeable)
 import           Type.Bool (True, False)
 #ifndef DataPolyKinds
 import           Type.Eq ((:==))
-import           Type.Meta (Known, val, Proxy (Proxy), Void)
+import           Type.Meta (Known, Val, val, Proxy (Proxy), Void)
 import           Type.Ord (Compare)
 import           Type.Ordering (LT, EQ, GT)
 import           Type.Semigroup ((:<>))
@@ -59,7 +59,8 @@ data Nothing
 
 
 ------------------------------------------------------------------------------
-instance Known (Maybe Void) Nothing where
+instance Known Nothing where
+    type Val Nothing = Maybe Void
     val _ = Nothing
 
 
@@ -69,7 +70,8 @@ data Just x
 
 
 ------------------------------------------------------------------------------
-instance Known r a => Known (Maybe r) (Just a) where
+instance Known a => Known (Just a) where
+    type Val (Just a) = Maybe (Val a)
     val _ = Just (val (Proxy :: Proxy a))
 
 

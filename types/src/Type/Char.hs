@@ -48,7 +48,7 @@ import           Prelude hiding (Char)
 --- types --------------------------------------------------------------------
 import           Type.Bool ((:&&))
 import           Type.Eq ((:==))
-import           Type.Meta (Known, val, Proxy (Proxy))
+import           Type.Meta (Known, Val, val, Proxy (Proxy))
 import           Type.Ord (Compare)
 import           Type.Semigroup ((:<>))
 
@@ -82,44 +82,48 @@ data Char
 
 ------------------------------------------------------------------------------
 instance
-    ( Known Bool b00
-    , Known Bool b01
-    , Known Bool b02
-    , Known Bool b03
-    , Known Bool b04
-    , Known Bool b05
-    , Known Bool b06
-    , Known Bool b07
-    , Known Bool b08
-    , Known Bool b09
-    , Known Bool b10
-    , Known Bool b11
-    , Known Bool b12
-    , Known Bool b13
-    , Known Bool b14
-    , Known Bool b15
-    , Known Bool b16
-    , Known Bool b17
-    , Known Bool b18
-    , Known Bool b19
-    , Known Bool b20
-    , Known Bool b21
-    , Known Bool b22
-    , Known Bool b23
-    , Known Bool b24
-    , Known Bool b25
-    , Known Bool b26
-    , Known Bool b27
-    , Known Bool b28
-    , Known Bool b29
-    , Known Bool b30
-    , Known Bool b31
+    ( Known b00, Val b00 ~ Bool
+    , Known b01, Val b01 ~ Bool
+    , Known b02, Val b02 ~ Bool
+    , Known b03, Val b03 ~ Bool
+    , Known b04, Val b04 ~ Bool
+    , Known b05, Val b05 ~ Bool
+    , Known b06, Val b06 ~ Bool
+    , Known b07, Val b07 ~ Bool
+    , Known b08, Val b08 ~ Bool
+    , Known b09, Val b09 ~ Bool
+    , Known b10, Val b10 ~ Bool
+    , Known b11, Val b11 ~ Bool
+    , Known b12, Val b12 ~ Bool
+    , Known b13, Val b13 ~ Bool
+    , Known b14, Val b14 ~ Bool
+    , Known b15, Val b15 ~ Bool
+    , Known b16, Val b16 ~ Bool
+    , Known b17, Val b17 ~ Bool
+    , Known b18, Val b18 ~ Bool
+    , Known b19, Val b19 ~ Bool
+    , Known b20, Val b20 ~ Bool
+    , Known b21, Val b21 ~ Bool
+    , Known b22, Val b22 ~ Bool
+    , Known b23, Val b23 ~ Bool
+    , Known b24, Val b24 ~ Bool
+    , Known b25, Val b25 ~ Bool
+    , Known b26, Val b26 ~ Bool
+    , Known b27, Val b27 ~ Bool
+    , Known b28, Val b28 ~ Bool
+    , Known b29, Val b29 ~ Bool
+    , Known b30, Val b30 ~ Bool
+    , Known b31, Val b31 ~ Bool
     )
   =>
-    Known C.Char (Char
+    Known (Char
         b00 b01 b02 b03 b04 b05 b06 b07 b08 b09 b10 b11 b12 b13 b14 b15
         b16 b17 b18 b19 b20 b21 b22 b23 b24 b25 b26 b27 b28 b29 b30 b31)
   where
+    type Val (Char
+        b00 b01 b02 b03 b04 b05 b06 b07 b08 b09 b10 b11 b12 b13 b14 b15
+        b16 b17 b18 b19 b20 b21 b22 b23 b24 b25 b26 b27 b28 b29 b30 b31) =
+            C.Char
     val _ = do
         let bits =
              [ val (Proxy :: Proxy b00)

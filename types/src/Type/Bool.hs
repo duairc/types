@@ -50,7 +50,7 @@ import           Type.Bits
                      , ShiftR
                      )
 #ifndef DataPolyKinds
-import           Type.Meta (Known, val)
+import           Type.Meta (Known, Val, val)
 #endif
 import           Type.Tuple.Pair (Pair)
 
@@ -74,13 +74,15 @@ data True
 
 
 ------------------------------------------------------------------------------
-instance Known Bool False where
+instance Known False where
+    type Val False = Bool
     val _ = False
     {-# INLINE val #-}
 
 
 ------------------------------------------------------------------------------
-instance Known Bool True where
+instance Known True where
+    type Val True = Bool
     val _ = True
     {-# INLINE val #-}
 #endif

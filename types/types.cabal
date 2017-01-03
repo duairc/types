@@ -71,9 +71,6 @@ library
     if impl(ghc < 7.6)
       build-depends: ghc-prim == 0.2.0.0
 
-  if impl(ghc >= 7.10)
-    cpp-options: -DOverlapPragma -DOverlappingInstances=NoImplicitParams
-
   ghc-options: -Wall
 
 source-repository head

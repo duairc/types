@@ -10,6 +10,8 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 
+{-# OPTIONS_GHC -fno-warn-orphans #-}
+
 #include "kinds.h"
 
 #ifdef DataPolyKinds
@@ -19,10 +21,6 @@
 
 #if __GLASGOW_HASKELL__ >= 706
 {-# LANGUAGE ExplicitNamespaces #-}
-#endif
-
-#if __GLASGOW_HASKELL__ >= 800
-{-# OPTIONS_GHC -fno-warn-orphans #-}
 #endif
 
 module GHC.Generics.Compat
@@ -119,7 +117,7 @@ import          GHC.TypeLits.Compat (Nat, Symbol)
 #if __GLASGOW_HASKELL__ < 800
 import          Type.Maybe (Just, Nothing)
 #endif
-import          Type.Meta (Known, Proxy (Proxy), val)
+import          Type.Meta (Known, Val, val, Proxy (Proxy))
 
 
 ------------------------------------------------------------------------------
@@ -226,31 +224,60 @@ data SourceUnpack
 
 
 ------------------------------------------------------------------------------
-instance (Known Fixity PrefixI) where val _ = Prefix
-instance (Known Associativity a, Known NatVal n) =>
-    Known Fixity (InfixI a n)
+instance (Known PrefixI) where
+    type Val PrefixI = Fixity
+    val _ = Prefix
+instance (Known a, Val a ~ Associativity, Known n, Val n ~ NatVal) =>
+    Known (InfixI a n)
   where
+    type Val (InfixI a n) = Fixity
     val _ =
         Infix (val (Proxy :: Proxy a)) (fromIntegral (val (Proxy :: Proxy n)))
-instance Known Associativity LeftAssociative where val _ = LeftAssociative
-instance Known Associativity RightAssociative where val _ = RightAssociative
-instance Known Associativity NotAssociative where val _ = NotAssociative
-instance Known DecidedStrictness DecidedLazy where val _ = DecidedLazy
-instance Known DecidedStrictness DecidedStrict where val _ = DecidedStrict
-instance Known DecidedStrictness DecidedUnpack where val _ = DecidedUnpack
-instance Known SourceStrictness NoSourceStrictness where
+instance Known LeftAssociative where
+    type Val LeftAssociative = Associativity
+    val _ = LeftAssociative
+instance Known RightAssociative where
+    type Val RightAssociative = Associativity
+    val _ = RightAssociative
+instance Known NotAssociative where
+    type Val NotAssociative = Associativity
+    val _ = NotAssociative
+instance Known DecidedLazy where
+    type Val DecidedLazy = DecidedStrictness
+    val _ = DecidedLazy
+instance Known DecidedStrict where
+    type Val DecidedStrict = DecidedStrictness
+    val _ = DecidedStrict
+instance Known DecidedUnpack where
+    type Val DecidedUnpack = DecidedStrictness
+    val _ = DecidedUnpack
+instance Known NoSourceStrictness where
+    type Val NoSourceStrictness = SourceStrictness
     val _ = NoSourceStrictness
-instance Known SourceStrictness SourceLazy where val _ = SourceLazy
-instance Known SourceStrictness SourceStrict where val _ = SourceStrict
-instance Known SourceUnpackedness NoSourceUnpackedness where
+instance Known SourceLazy where
+    type Val SourceLazy = SourceStrictness
+    val _ = SourceLazy
+instance Known SourceStrict where
+    type Val SourceStrict = SourceStrictness
+    val _ = SourceStrict
+instance Known NoSourceUnpackedness where
+    type Val NoSourceUnpackedness = SourceUnpackedness
     val _ = NoSourceUnpackedness
-instance Known SourceUnpackedness SourceNoUnpack where val _ = SourceNoUnpack
-instance Known SourceUnpackedness SourceUnpack where val _ = SourceUnpack
+instance Known SourceNoUnpack where
+    type Val SourceNoUnpack = SourceUnpackedness
+    val _ = SourceNoUnpack
+instance Known SourceUnpack where
+    type Val SourceUnpack = SourceUnpackedness
+    val _ = SourceUnpack
 #if __GLASGOW_HASKELL__ < 800
 
 
 ------------------------------------------------------------------------------
-instance (Known String n, Known String m, Known Bool nt) =>
+instance
+    ( Known n, Val n ~ String, Known m, Val m ~ String, Known nt
+    , Val nt ~ Bool
+    )
+  =>
     Datatype (MetaData n m p nt)
   where
     datatypeName _ = val (Proxy :: Proxy n)
@@ -261,7 +288,9 @@ instance (Known String n, Known String m, Known Bool nt) =>
 
 
 ------------------------------------------------------------------------------
-instance (Known String n, Known Fixity f, Known Bool r) =>
+instance
+    (Known n, Val n ~ String, Known f, Val f ~ Fixity, Known r, Val r ~ Bool)
+  =>
     Constructor (MetaCons n f r)
   where
     conName _ = val (Proxy :: Proxy n)
@@ -270,7 +299,9 @@ instance (Known String n, Known Fixity f, Known Bool r) =>
 
 
 ------------------------------------------------------------------------------
-instance Known String s => Selector (MetaSel (Just s) su ss ds) where
+instance (Known s, Val s ~ String) =>
+    Selector (MetaSel (Just s) su ss ds)
+  where
     selName _ = val (Proxy :: Proxy s)
 
 

@@ -3,7 +3,6 @@
 {-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverlappingInstances #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
@@ -41,7 +40,7 @@ import           Data.Typeable (Typeable)
 -- types ---------------------------------------------------------------------
 import           Type.Bool (True, False, (:&&))
 import           Type.Eq ((:==))
-import           Type.Meta (Known, val, Proxy (Proxy), Void)
+import           Type.Meta (Known, Val, val, Proxy (Proxy), Void)
 import           Type.Ord (Compare)
 import           Type.Ordering (LT, EQ, GT)
 import           Type.Semigroup ((:<>))
@@ -66,7 +65,8 @@ data Nil
 
 
 ------------------------------------------------------------------------------
-instance Known [Void] Nil where
+instance Known Nil where
+    type Val Nil = [Void]
     val _ = []
 
 
@@ -77,18 +77,17 @@ infixr 5 `Cons`
 
 
 ------------------------------------------------------------------------------
-instance Known r a => Known [r] (Cons a Nil) where
+instance Known a => Known (Cons a Nil) where
+    type Val (Cons a Nil) = [Val a]
     val _ = [val (Proxy :: Proxy a)]
 
 
 ------------------------------------------------------------------------------
-instance
-#ifdef OverlapPragma
-    {-# OVERLAPS #-}
-#endif
-    (Known r a, Known [r] as) => Known [r] (Cons a as)
+instance (Known a, Known (Cons a' as), Val (Cons a' as) ~ [Val a]) =>
+    Known (Cons a (Cons a' as))
   where
-    val _ = val (Proxy :: Proxy a) : val (Proxy :: Proxy as)
+    type Val (Cons a (Cons a' as)) = [Val a]
+    val _ = val (Proxy :: Proxy a) : val (Proxy :: Proxy (Cons a' as))
 
 
 ------------------------------------------------------------------------------

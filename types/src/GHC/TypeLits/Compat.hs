@@ -97,7 +97,7 @@ import           Unsafe.Coerce (unsafeCoerce)
 -- types ---------------------------------------------------------------------
 #ifndef UseTypeLits
 import           Type.Bool (True)
-import           Type.Meta (Known, val, Proxy (Proxy), (:~:) (Refl))
+import           Type.Meta (Known, Val, val, Proxy (Proxy), (:~:) (Refl))
 #endif
 #ifndef UseTypeLits
 import           Type.Natural
@@ -127,7 +127,7 @@ class KnownNat (a :: KNatural) where
 
 
 ------------------------------------------------------------------------------
-instance Known Integer a => KnownNat a where
+instance (Known a, Val a ~ Integer) => KnownNat a where
     natVal = toInteger . val
     {-# INLINE natVal #-}
 
@@ -138,7 +138,7 @@ class KnownSymbol (a :: KString) where
 
 
 ------------------------------------------------------------------------------
-instance Known String a => KnownSymbol a where
+instance (Known a, Val a ~ String) => KnownSymbol a where
     symbolVal = val
     {-# INLINE symbolVal #-}
 

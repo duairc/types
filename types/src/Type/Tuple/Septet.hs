@@ -41,7 +41,7 @@ import           Data.Typeable (Typeable)
 -- types ---------------------------------------------------------------------
 import           Type.Bool ((:&&))
 import           Type.Eq ((:==))
-import           Type.Meta (Known, val, Proxy (Proxy))
+import           Type.Meta (Known, Val, val, Proxy (Proxy))
 import           Type.Ord (Compare)
 import           Type.Semigroup ((:<>))
 
@@ -60,11 +60,11 @@ data Septet a b c d e f g
 
 
 ------------------------------------------------------------------------------
-instance (Known ra a, Known rb b, Known rc c, Known rd d, Known re e,
-    Known rf f, Known rg g)
-  =>
-    Known (ra, rb, rc, rd, re, rf, rg) (Septet a b c d e f g)
+instance (Known a, Known b, Known c, Known d, Known e, Known f, Known g) =>
+    Known (Septet a b c d e f g)
   where
+    type Val (Septet a b c d e f g) =
+        (Val a, Val b, Val c, Val d, Val e, Val f, Val g)
     val _ = (val (Proxy :: Proxy a), val (Proxy :: Proxy b),
         val (Proxy :: Proxy c), val (Proxy :: Proxy d),
         val (Proxy :: Proxy e), val (Proxy :: Proxy f),

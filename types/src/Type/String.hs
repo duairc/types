@@ -48,7 +48,7 @@ import qualified Prelude as S (String)
 import           Type.Char (KChar)
 #endif
 import           Type.Eq ((:==))
-import           Type.Meta (Known, val, Proxy (Proxy))
+import           Type.Meta (Known, Val, val, Proxy (Proxy))
 import           Type.Ord (Compare)
 import           Type.Semigroup ((:<>))
 
@@ -71,7 +71,8 @@ data String (ns :: KList (KChar))
 
 
 ------------------------------------------------------------------------------
-instance Known S.String cs => Known S.String (String cs) where
+instance (Known cs, Val cs ~ S.String) => Known (String cs) where
+    type Val (String cs) = S.String
     val _ = val (Proxy :: Proxy cs)
     {-# INLINE val #-}
 

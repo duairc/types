@@ -38,7 +38,7 @@ import           Data.Typeable (Typeable)
 -- types ---------------------------------------------------------------------
 import           Type.Bool ((:&&))
 import           Type.Eq ((:==))
-import           Type.Meta (Known, val, Proxy (Proxy))
+import           Type.Meta (Known, Val, val, Proxy (Proxy))
 import           Type.Ord (Compare)
 import           Type.Semigroup ((:<>))
 
@@ -57,9 +57,8 @@ data Quartet a b c d
 
 
 ------------------------------------------------------------------------------
-instance (Known ra a, Known rb b, Known rc c, Known rd d) =>
-    Known (ra, rb, rc, rd) (Quartet a b c d)
-  where
+instance (Known a, Known b, Known c, Known d) => Known (Quartet a b c d) where
+    type Val (Quartet a b c d) = (Val a, Val b, Val c, Val d)
     val _ = (val (Proxy :: Proxy a), val (Proxy :: Proxy b),
         val (Proxy :: Proxy c), val (Proxy :: Proxy d))
 

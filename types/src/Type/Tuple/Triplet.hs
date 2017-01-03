@@ -37,7 +37,7 @@ import           Data.Typeable (Typeable)
 -- types ---------------------------------------------------------------------
 import           Type.Bool ((:&&))
 import           Type.Eq ((:==))
-import           Type.Meta (Known, val, Proxy (Proxy))
+import           Type.Meta (Known, Val, val, Proxy (Proxy))
 import           Type.Ord (Compare)
 import           Type.Semigroup ((:<>))
 
@@ -56,9 +56,8 @@ data Triplet a b c
 
 
 ------------------------------------------------------------------------------
-instance (Known ra a, Known rb b, Known rc c) =>
-    Known (ra, rb, rc) (Triplet a b c)
-  where
+instance (Known a, Known b, Known c) => Known (Triplet a b c) where
+    type Val (Triplet a b c) = (Val a, Val b, Val c)
     val _ = (val (Proxy :: Proxy a), val (Proxy :: Proxy b),
         val (Proxy :: Proxy c))
 

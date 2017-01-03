@@ -55,7 +55,7 @@ import           Type.Eq ((:==))
 import           Type.Bool (False, True)
 import qualified Type.Bool as B (Add, Subtract)
 import           Type.List (Nil, Cons, Reverse)
-import           Type.Meta (Known, val, Proxy (Proxy))
+import           Type.Meta (Known, Val, val, Proxy (Proxy))
 import           Type.Num ((:+), (:*), (:^), (:-))
 import           Type.Ord (Compare)
 import           Type.Ordering (LT, EQ, GT)
@@ -81,24 +81,27 @@ data Natural (ns :: KList (KBool))
 
 
 ------------------------------------------------------------------------------
+instance Known (Natural Nil) where
+    type Val (Natural Nil) =
 #if __GLASGOW_HASKELL__ >= 710
-instance Known N.Natural (Natural Nil)
+        N.Natural
 #else
-instance Known Integer (Natural Nil)
+        Integer
 #endif
-  where
     val _ = 0
     {-# INLINE val #-}
 
 
 ------------------------------------------------------------------------------
-instance Known [Bool] (Cons a as) =>
-#if __GLASGOW_HASKELL__ >= 710
-    Known N.Natural (Natural (Cons a as))
-#else
-    Known Integer (Natural (Cons a as))
-#endif
+instance (Known (Cons a as), Val (Cons a as) ~ [Bool]) =>
+    Known (Natural (Cons a as))
   where
+    type Val (Natural (Cons a as)) =
+#if __GLASGOW_HASKELL__ >= 710
+        N.Natural
+#else
+        Integer
+#endif
     val _ = do
         let bits = val (Proxy :: Proxy (Cons a as))
         foldr (\b c -> shiftL c 1 .|. if b then 1 else 0) 0 bits

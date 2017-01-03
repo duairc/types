@@ -32,7 +32,7 @@ import           Data.Typeable (Typeable)
 -- types ---------------------------------------------------------------------
 import           Type.Bool (True)
 import           Type.Eq ((:==))
-import           Type.Meta (Known, val)
+import           Type.Meta (Known, Val, val)
 import           Type.Ord (Compare)
 import           Type.Ordering (EQ)
 import           Type.Semigroup ((:<>))
@@ -48,7 +48,8 @@ data Unit
 
 
 ------------------------------------------------------------------------------
-instance Known () Unit where
+instance Known Unit where
+    type Val Unit = ()
     val _ = ()
 
 

@@ -4,10 +4,8 @@
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverlappingInstances #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StandaloneDeriving #-}
@@ -36,6 +34,7 @@
 
 module Type.Meta
     ( Known
+    , Val
     , val
     , Some (Some)
     , someVal
@@ -160,74 +159,82 @@ import           Unsafe.Coerce (unsafeCoerce)
 
 
 ------------------------------------------------------------------------------
-class Known r t | t -> r where
-    val :: proxy t -> r
+class Known t where
+    type Val t
+    val :: proxy t -> Val t
 
 
 #ifdef DataPolyKinds
 ------------------------------------------------------------------------------
-instance Known Bool 'True where
+instance Known 'True where
+    type Val 'True = Bool
     val _ = True
     {-# INLINE val #-}
 
 
 ------------------------------------------------------------------------------
-instance Known Bool 'False where
+instance Known 'False where
+    type Val 'False = Bool
     val _ = False
     {-# INLINE val #-}
 
 
 ------------------------------------------------------------------------------
-instance Known Ordering 'LT where
+instance Known 'LT where
+    type Val 'LT = Ordering
     val _ = LT
     {-# INLINE val #-}
 
 
 ------------------------------------------------------------------------------
-instance Known Ordering 'EQ where
+instance Known 'EQ where
+    type Val 'EQ = Ordering
     val _ = EQ
     {-# INLINE val #-}
 
 
 ------------------------------------------------------------------------------
-instance Known Ordering 'GT where
+instance Known 'GT where
+    type Val 'GT = Ordering
     val _ = GT
     {-# INLINE val #-}
 
 
 ------------------------------------------------------------------------------
-instance Known () '() where
+instance Known '() where
+    type Val '() = ()
     val _ = ()
     {-# INLINE val #-}
 
 
 ------------------------------------------------------------------------------
-instance (Known ra a, Known rb b) => Known (ra, rb) '(a, b) where
+instance (Known a, Known b) => Known '(a, b) where
+    type Val '(a, b) = (Val a, Val b)
     val _ = (val (Proxy :: Proxy a), val (Proxy :: Proxy b))
     {-# INLINE val #-}
 
 
 ------------------------------------------------------------------------------
-instance (Known ra a, Known rb b, Known rc c) => Known (ra, rb, rc) '(a, b, c)
-  where
+instance (Known a, Known b, Known c) => Known '(a, b, c) where
+    type Val '(a, b, c) = (Val a, Val b, Val c)
     val _ = (val (Proxy :: Proxy a), val (Proxy :: Proxy b),
         val (Proxy :: Proxy c))
     {-# INLINE val #-}
 
 
 ------------------------------------------------------------------------------
-instance (Known ra a, Known rb b, Known rc c, Known rd d) =>
-    Known (ra, rb, rc, rd) '(a, b, c, d)
-  where
+instance (Known a, Known b, Known c, Known d) => Known '(a, b, c, d) where
+    type Val '(a, b, c, d) = (Val a, Val b, Val c, Val d)
     val _ = (val (Proxy :: Proxy a), val (Proxy :: Proxy b),
         val (Proxy :: Proxy c), val (Proxy :: Proxy d))
     {-# INLINE val #-}
 
 
 ------------------------------------------------------------------------------
-instance (Known ra a, Known rb b, Known rc c, Known rd d, Known re e) =>
-    Known (ra, rb, rc, rd, re) '(a, b, c, d, e)
+instance (Known a, Known b, Known c, Known d, Known e) =>
+    Known '(a, b, c, d, e)
   where
+    type Val '(a, b, c, d, e) = (Val a, Val b, Val c, Val d, Val e)
     val _ = (val (Proxy :: Proxy a), val (Proxy :: Proxy b),
         val (Proxy :: Proxy c), val (Proxy :: Proxy d),
         val (Proxy :: Proxy e))
@@ -235,22 +242,21 @@ instance (Known ra a, Known rb b, Known rc c, Known rd d, Known re e) =>
 
 
 ------------------------------------------------------------------------------
-instance (Known ra a, Known rb b, Known rc c, Known rd d, Known re e,
-    Known rf f)
-  =>
-    Known (ra, rb, rc, rd, re, rf) '(a, b, c, d, e, f)
+instance (Known a, Known b, Known c, Known d, Known e, Known f) =>
+    Known '(a, b, c, d, e, f)
   where
+    type Val '(a, b, c, d, e, f) = (Val a, Val b, Val c, Val d, Val e, Val f)
     val _ = (val (Proxy :: Proxy a), val (Proxy :: Proxy b),
         val (Proxy :: Proxy c), val (Proxy :: Proxy d),
         val (Proxy :: Proxy e), val (Proxy :: Proxy f))
     {-# INLINE val #-}
 
 ------------------------------------------------------------------------------
-instance (Known ra a, Known rb b, Known rc c, Known rd d, Known re e,
-    Known rf f, Known rg g)
-  =>
-    Known (ra, rb, rc, rd, re, rf, rg) '(a, b, c, d, e, f, g)
+instance (Known a, Known b, Known c, Known d, Known e, Known f, Known g) =>
+    Known '(a, b, c, d, e, f, g)
   where
+    type Val '(a, b, c, d, e, f, g) =
+        (Val a, Val b, Val c, Val d, Val e, Val f, Val g)
     val _ = (val (Proxy :: Proxy a), val (Proxy :: Proxy b),
         val (Proxy :: Proxy c), val (Proxy :: Proxy d),
         val (Proxy :: Proxy e), val (Proxy :: Proxy f),
@@ -259,47 +265,52 @@ instance (Known ra a, Known rb b, Known rc c, Known rd d, Known re e,
 
 
 ------------------------------------------------------------------------------
-instance Known [Void] '[] where
+instance Known ('[] :: [k]) where
+    type Val ('[] :: [k]) = [Void]
     val _ = []
     {-# INLINE val #-}
 
 
 ------------------------------------------------------------------------------
-instance Known r a => Known [r] '[a] where
+instance Known a => Known '[a] where
+    type Val '[a] = [Val a]
     val _ = [val (Proxy :: Proxy a)]
     {-# INLINE val #-}
 
 
 ------------------------------------------------------------------------------
-instance
-#ifdef OverlapPragma
-    {-# OVERLAPS #-}
-#endif
-  (Known r a, Known [r] as) => Known [r] (a ': as) where
-    val _ = val (Proxy :: Proxy a) : val (Proxy :: Proxy as)
+instance (Known a, Known (a' ': as), Val (a' ': as) ~ [Val a]) =>
+    Known (a ': (a' ': as))
+  where
+    type Val (a ': (a' ': as)) = [Val a]
+    val _ = val (Proxy :: Proxy a) : val (Proxy :: Proxy (a' ': as))
     {-# INLINE val #-}
 
 
 ------------------------------------------------------------------------------
-instance Known (Maybe Void) 'Nothing where
+instance Known ('Nothing :: Maybe k) where
+    type Val ('Nothing :: Maybe k) = Maybe Void
     val _ = Nothing
     {-# INLINE val #-}
 
 
 ------------------------------------------------------------------------------
-instance Known r a => Known (Maybe r) ('Just a) where
+instance Known a => Known ('Just a) where
+    type Val ('Just a) = Maybe (Val a)
     val _ = Just (val (Proxy :: Proxy a))
     {-# INLINE val #-}
 
 
 ------------------------------------------------------------------------------
-instance Known r a => Known (Either r Void) ('Left a) where
+instance Known a => Known ('Left a :: Either k k) where
+    type Val ('Left a :: Either k k) = Either (Val a) Void
     val _ = Left (val (Proxy :: Proxy a))
     {-# INLINE val #-}
 
 
 ------------------------------------------------------------------------------
-instance Known r a => Known (Either Void r) ('Right a) where
+instance Known a => Known ('Right a :: Either k k) where
+    type Val ('Right a :: Either k k) = Either Void (Val a)
     val _ = Right (val (Proxy :: Proxy a))
     {-# INLINE val #-}
 #if __GLASGOW_HASKELL__ >= 706
@@ -313,8 +324,9 @@ instance
     SingRep a String
 #endif
   =>
-    Known String (a :: Symbol)
+    Known (a :: Symbol)
   where
+    type Val (a :: Symbol) = String
 #if __GLASGOW_HASKELL__ >= 708
     val = symbolVal
 #else
@@ -326,15 +338,18 @@ instance
 ------------------------------------------------------------------------------
 instance
 #if __GLASGOW_HASKELL__ >= 708
-#if __GLASGOW_HASKELL__ >= 710
-    KnownNat a => Known Natural (a :: Nat)
+    KnownNat a
 #else
-    KnownNat a => Known Integer (a :: Nat)
+    SingRep a Integer
 #endif
-#else
-    SingRep a Integer => Known Integer (a :: Nat)
-#endif
+  =>
+    Known (a :: Nat)
   where
+#if __GLASGOW_HASKELL__ >= 710
+    type Val (a :: Nat) = Natural
+#else
+    type Val (a :: Nat) = Integer
+#endif
 #if __GLASGOW_HASKELL__ >= 708
     val = fromInteger . natVal
 #else
@@ -347,9 +362,10 @@ instance
 
 ------------------------------------------------------------------------------
 #if __GLASGOW_HASKELL__ >= 711
-data Some r = forall (k :: Type) (a :: k). Known r a => Some (Proxy (a :: k))
+data Some r = forall (k :: Type) (a :: k). (Known a, Val a ~ r) =>
+    Some (Proxy (a :: k))
 #else
-data Some r = forall a. Known r a => Some (Proxy a)
+data Some r = forall a. (Known a, Val a ~ r) => Some (Proxy a)
 #endif
 
 
@@ -492,7 +508,11 @@ instance Floating r => Floating (Some r) where
 
 ------------------------------------------------------------------------------
 someVal :: r -> Some r
-someVal r = withVal p r Some p
+someVal r =
+#if __GLASGOW_HASKELL__ < 700
+    unsafeCoerce $
+#endif
+    withVal p r Some p
   where
     p = Proxy :: Proxy Any
 
@@ -502,17 +522,20 @@ type family Any
 
 
 ------------------------------------------------------------------------------
-same :: (Eq r, Known r a, Known r b) => proxy a -> proxy' b -> Maybe (a :~: b)
+same :: (Eq (Val a), Val a ~ Val b, Known a, Known b)
+    => proxy a
+    -> proxy' b
+    -> Maybe (a :~: b)
 same a b = if val a == val b then Just (unsafeCoerce Refl) else Nothing
 
 
 ------------------------------------------------------------------------------
-newtype Val r a b = Val (Known r a => b)
+newtype KnownF r a b = KnownF ((Known a, Val a ~ r) => b)
 
 
 ------------------------------------------------------------------------------
-withVal :: forall a b r. Proxy a -> r -> (Known r a => b) -> b
-withVal _ r f = unsafeCoerce (Val f :: Val r a b) (const r)
+withVal :: forall a b r. Proxy a -> r -> ((Known a, Val a ~ r) => b) -> b
+withVal _ r f = unsafeCoerce (KnownF f :: KnownF r a b) (const r)
 {-# INLINE withVal #-}
 #if __GLASGOW_HASKELL__ < 708
 

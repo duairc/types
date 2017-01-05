@@ -32,11 +32,6 @@
 
 #include "kinds.h"
 
-#if __GLASGOW_HASKELL__ >= 702 && __GLASGOW_HASKELL__ < 704
--- disable optimisation on GHC 7.2 to prevent panic (possibly #5315 ?)
-{-# OPTIONS_GHC -O0 #-}
-#endif
-
 module Type.Meta
     ( Known
     , Val
@@ -535,13 +530,23 @@ same a b = if val a == val b then Just (unsafeCoerce Refl) else Nothing
 
 
 ------------------------------------------------------------------------------
-newtype KnownF r a b = KnownF ((Known a, Val a ~ r) => b)
+withVal :: forall a b r. Proxy a -> r -> ((Known a, Val a ~ r) => b) -> b
+withVal _ r f = unsafeCoerce (withEq (unsafeCoerce Refl) f') (const r)
+  where
+    f' = EqF (KnownF f) :: EqF r (Val a) (KnownF a b)
 
 
 ------------------------------------------------------------------------------
-withVal :: forall a b r. Proxy a -> r -> ((Known a, Val a ~ r) => b) -> b
-withVal _ r f = unsafeCoerce (KnownF f :: KnownF r a b) (const r)
-{-# INLINE withVal #-}
+newtype KnownF a b = KnownF (Known a => b)
+
+
+------------------------------------------------------------------------------
+newtype EqF a b c = EqF ((a ~ b) => c)
+
+
+------------------------------------------------------------------------------
+withEq :: forall a b c. a :~: b -> EqF a b c -> c
+withEq Refl (EqF c) = c
 #if __GLASGOW_HASKELL__ < 708
 
 

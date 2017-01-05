@@ -32,6 +32,11 @@
 
 #include "kinds.h"
 
+#if __GLASGOW_HASKELL__ >= 702 && __GLASGOW_HASKELL__ < 704
+-- disable optimisation on GHC 7.2 to prevent panic (possibly #5315 ?)
+{-# OPTIONS_GHC -O0 #-}
+#endif
+
 module Type.Meta
     ( Known
     , Val

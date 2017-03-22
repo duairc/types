@@ -36,6 +36,7 @@ module Type.Meta
     ( Known
     , Val
     , val
+    , Sing (Sing)
     , Some (Some)
     , someVal
     , same
@@ -133,10 +134,12 @@ import           GHC.TypeLits
                      , KnownSymbol
                      , symbolVal
 #else
-                     , Sing
                      , SingRep
                      , fromSing
                      , sing
+                     )
+import qualified GHC.TypeLits as G
+                     ( Sing
 #endif
                      )
 #endif
@@ -251,6 +254,7 @@ instance (Known a, Known b, Known c, Known d, Known e, Known f) =>
         val (Proxy :: Proxy e), val (Proxy :: Proxy f))
     {-# INLINE val #-}
 
+
 ------------------------------------------------------------------------------
 instance (Known a, Known b, Known c, Known d, Known e, Known f, Known g) =>
     Known '(a, b, c, d, e, f, g)
@@ -330,7 +334,7 @@ instance
 #if __GLASGOW_HASKELL__ >= 708
     val = symbolVal
 #else
-    val _ = fromSing (sing :: Sing a)
+    val _ = fromSing (sing :: G.Sing a)
 #endif
     {-# INLINE val #-}
 
@@ -353,7 +357,7 @@ instance
 #if __GLASGOW_HASKELL__ >= 708
     val = fromInteger . natVal
 #else
-    val _ = fromSing (sing :: Sing a)
+    val _ = fromSing (sing :: G.Sing a)
 #endif
     {-# INLINE val #-}
 #endif
@@ -361,49 +365,74 @@ instance
 
 
 ------------------------------------------------------------------------------
+data Sing r a = (Known a, Val a ~ r) => Sing !(Proxy a)
+
+
+------------------------------------------------------------------------------
+instance Eq r => TestEquality (Sing r) where
+    testEquality (Sing a) (Sing b)
+        | val a == val b = Just (unsafeCoerce Refl)
+        | otherwise = Nothing
+
+
+------------------------------------------------------------------------------
+instance Eq (Sing r a) where
+    _ == _ = True
+
+
+------------------------------------------------------------------------------
+instance Ord (Sing r a) where
+    compare _ _ = EQ
+
+
+------------------------------------------------------------------------------
+instance Show r => Show (Sing r a) where
+    showsPrec p (Sing a) = showsPrec p (val a)
+
+
+------------------------------------------------------------------------------
 #if __GLASGOW_HASKELL__ >= 711
-data Some r = forall (k :: Type) (a :: k). (Known a, Val a ~ r) =>
-    Some (Proxy (a :: k))
+data Some r = forall (k :: Type) (a :: k). Some !(Sing r (a :: k))
 #else
-data Some r = forall a. (Known a, Val a ~ r) => Some (Proxy a)
+data Some r = forall a. Some !(Sing r a)
 #endif
 
 
 ------------------------------------------------------------------------------
 instance Functor Some where
-    fmap f (Some a) = someVal (f (val a))
+    fmap f (Some (Sing a)) = someVal (f (val a))
 
 
 ------------------------------------------------------------------------------
 instance Applicative Some where
     pure = someVal
-    Some f <*> Some a = someVal (val f (val a))
+    Some (Sing f) <*> Some (Sing a) = someVal (val f (val a))
 
 
 ------------------------------------------------------------------------------
 instance Monad Some where
     return = pure
-    Some a >>= f = f (val a)
+    Some (Sing a) >>= f = f (val a)
 
 
 ------------------------------------------------------------------------------
 instance Foldable Some where
-    foldMap f (Some a) = f (val a)
+    foldMap f (Some (Sing a)) = f (val a)
 
 
 ------------------------------------------------------------------------------
 instance Traversable Some where
-    traverse f (Some a) = fmap someVal (f (val a))
+    traverse f (Some (Sing a)) = fmap someVal (f (val a))
 
 
 ------------------------------------------------------------------------------
 instance Eq r => Eq (Some r) where
-    Some a == Some b = val a == val b
+    Some (Sing a) == Some (Sing b) = val a == val b
 
 
 ------------------------------------------------------------------------------
 instance Ord r => Ord (Some r) where
-    compare (Some a) (Some b) = compare (val a) (val b)
+    compare (Some (Sing a)) (Some (Sing b)) = compare (val a) (val b)
 
 
 ------------------------------------------------------------------------------
@@ -415,7 +444,7 @@ instance Read r => Read (Some r) where
 
 ------------------------------------------------------------------------------
 instance Show r => Show (Some r) where
-    showsPrec p (Some a) = showsPrec p (val a)
+    showsPrec p (Some (Sing a)) = showsPrec p (val a)
 
 
 ------------------------------------------------------------------------------
@@ -427,83 +456,89 @@ instance Bounded r => Bounded (Some r) where
 ------------------------------------------------------------------------------
 instance Enum r => Enum (Some r) where
     toEnum = someVal . toEnum
-    fromEnum (Some r) = fromEnum (val r)
+    fromEnum (Some (Sing r)) = fromEnum (val r)
 
 
 ------------------------------------------------------------------------------
 instance Ix r => Ix (Some r) where
-    range (Some a, Some b) = map someVal (range (val a, val b))
-    index (Some a, Some b) (Some i) = index (val a, val b) (val i)
-    inRange (Some a, Some b) (Some i) = inRange (val a, val b) (val i)
+    range (Some (Sing a), Some (Sing b)) = map someVal (range (val a, val b))
+    index (Some (Sing a), Some (Sing b)) (Some (Sing i)) =
+        index (val a, val b) (val i)
+    inRange (Some (Sing a), Some (Sing b)) (Some (Sing i)) =
+        inRange (val a, val b) (val i)
 
 
 #if __GLASGOW_HASKELL__ >= 711
 ------------------------------------------------------------------------------
 instance Semigroup r => Semigroup (Some r) where
-    Some a <> Some b = someVal (val a <> val b)
+    Some (Sing a) <> Some (Sing b) = someVal (val a <> val b)
 
 
 #endif
 ------------------------------------------------------------------------------
 instance Monoid r => Monoid (Some r) where
     mempty = someVal mempty
-    mappend (Some a) (Some b) = someVal (mappend (val a) (val b))
+    mappend (Some (Sing a)) (Some (Sing b)) =
+        someVal (mappend (val a) (val b))
 
 
 ------------------------------------------------------------------------------
 instance Num r => Num (Some r) where
-    Some a + Some b = someVal (val a + val b)
-    Some a * Some b = someVal (val a * val b)
-    Some a - Some b = someVal (val a - val b)
-    negate (Some a) = someVal (negate (val a))
-    abs (Some a) = someVal (abs (val a))
-    signum (Some a) = someVal (signum (val a))
+    Some (Sing a) + Some (Sing b) = someVal (val a + val b)
+    Some (Sing a) * Some (Sing b) = someVal (val a * val b)
+    Some (Sing a) - Some (Sing b) = someVal (val a - val b)
+    negate (Some (Sing a)) = someVal (negate (val a))
+    abs (Some (Sing a)) = someVal (abs (val a))
+    signum (Some (Sing a)) = someVal (signum (val a))
     fromInteger = someVal . fromInteger
 
 
 ------------------------------------------------------------------------------
 instance Real r => Real (Some r) where
-    toRational (Some r) = toRational (val r)
+    toRational (Some (Sing r)) = toRational (val r)
 
 
 ------------------------------------------------------------------------------
 instance Integral r => Integral (Some r) where
-    quot (Some a) (Some b) = someVal (quot (val a) (val b))
-    rem (Some a) (Some b) = someVal (rem (val a) (val b))
-    div (Some a) (Some b) = someVal (div (val a) (val b))
-    mod (Some a) (Some b) = someVal (mod (val a) (val b))
-    quotRem (Some a) (Some b) = someVal *** someVal $ quotRem (val a) (val b)
-    divMod (Some a) (Some b) = someVal *** someVal $ divMod (val a) (val b)
-    toInteger (Some a) = toInteger (val a)
+    quot (Some (Sing a)) (Some (Sing b)) = someVal (quot (val a) (val b))
+    rem (Some (Sing a)) (Some (Sing b)) = someVal (rem (val a) (val b))
+    div (Some (Sing a)) (Some (Sing b)) = someVal (div (val a) (val b))
+    mod (Some (Sing a)) (Some (Sing b)) = someVal (mod (val a) (val b))
+    quotRem (Some (Sing a)) (Some (Sing b)) =
+        someVal *** someVal $ quotRem (val a) (val b)
+    divMod (Some (Sing a)) (Some (Sing b)) = 
+        someVal *** someVal $ divMod (val a) (val b)
+    toInteger (Some (Sing a)) = toInteger (val a)
 
 
 ------------------------------------------------------------------------------
 instance Fractional r => Fractional (Some r) where
-    Some a / Some b = someVal (val a / val b)
-    recip (Some a) = someVal (recip (val a))
+    Some (Sing a) / Some (Sing b) = someVal (val a / val b)
+    recip (Some (Sing a)) = someVal (recip (val a))
     fromRational = someVal . fromRational
 
 
 ------------------------------------------------------------------------------
 instance Floating r => Floating (Some r) where
     pi = someVal pi
-    exp (Some a) = someVal (exp (val a))
-    log (Some a) = someVal (log (val a))
-    sqrt (Some a) = someVal (sqrt (val a))
-    Some a ** Some b = someVal (val a ** val b)
-    logBase (Some a) (Some b) = someVal (logBase (val a) (val b))
-    sin (Some a) = someVal (sin (val a))
-    cos (Some a) = someVal (cos (val a))
-    tan (Some a) = someVal (tan (val a))
-    asin (Some a) = someVal (asin (val a))
-    acos (Some a) = someVal (acos (val a))
-    atan (Some a) = someVal (atan (val a))
-    sinh (Some a) = someVal (sinh (val a))
-    cosh (Some a) = someVal (cosh (val a))
-    tanh (Some a) = someVal (tanh (val a))
-    asinh (Some a) = someVal (asinh (val a))
-    acosh (Some a) = someVal (acosh (val a))
-    atanh (Some a) = someVal (atanh (val a))
+    exp (Some (Sing a)) = someVal (exp (val a))
+    log (Some (Sing a)) = someVal (log (val a))
+    sqrt (Some (Sing a)) = someVal (sqrt (val a))
+    Some (Sing a) ** Some (Sing b) = someVal (val a ** val b)
+    logBase (Some (Sing a)) (Some (Sing b)) =
+        someVal (logBase (val a) (val b))
+    sin (Some (Sing a)) = someVal (sin (val a))
+    cos (Some (Sing a)) = someVal (cos (val a))
+    tan (Some (Sing a)) = someVal (tan (val a))
+    asin (Some (Sing a)) = someVal (asin (val a))
+    acos (Some (Sing a)) = someVal (acos (val a))
+    atan (Some (Sing a)) = someVal (atan (val a))
+    sinh (Some (Sing a)) = someVal (sinh (val a))
+    cosh (Some (Sing a)) = someVal (cosh (val a))
+    tanh (Some (Sing a)) = someVal (tanh (val a))
+    asinh (Some (Sing a)) = someVal (asinh (val a))
+    acosh (Some (Sing a)) = someVal (acosh (val a))
+    atanh (Some (Sing a)) = someVal (atanh (val a))
 
 
 ------------------------------------------------------------------------------
@@ -512,7 +547,7 @@ someVal r =
 #if __GLASGOW_HASKELL__ < 700
     unsafeCoerce $
 #endif
-    withVal p r Some p
+    withVal p r (Some . Sing) p
   where
     p = Proxy :: Proxy Any
 

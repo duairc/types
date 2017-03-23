@@ -569,7 +569,7 @@ instance (IsString r, Eq r, Known a, Val a ~ r) => IsString (Sing r a) where
 
 ------------------------------------------------------------------------------
 instance NFData (Sing r a) where
-    rnf (Sing a) = rnf a
+    rnf (Sing Proxy) = ()
 
 
 #ifdef GenericDeriving

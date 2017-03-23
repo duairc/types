@@ -1,0 +1,34 @@
+name:           types-hashable
+version:        0.1
+synopsis:       Hashable instances for types
+license:        MPL-2.0
+license-file:   LICENSE
+author:         Shane O'Brien
+maintainer:     shane@duairc.com
+stability:      Experimental
+category:       Type
+cabal-version:  >= 1.6
+build-type:     Simple
+homepage:       https://github.com/duairc/types
+bug-reports:    https://github.com/duairc/types/issues
+
+extra-source-files:
+  LICENSE
+
+library
+  hs-source-dirs:
+    src
+
+  exposed-modules:
+    Type.Meta.Hashable
+
+  build-depends:
+    base >= 4.2 && < 5,
+    types >= 0.1 && < 0.2,
+    hashable >= 1.2.5 && < 1.3
+
+  ghc-options: -Wall
+
+source-repository head
+  type:     git
+  location: https://github.com/duairc/types.git

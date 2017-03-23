@@ -19,9 +19,6 @@ library
   hs-source-dirs:
     src
 
-  include-dirs:
-    include
-
   exposed-modules:
     Type.TH
 

@@ -32,6 +32,9 @@ import           Type.Meta
 #if !MIN_VERSION_base(4, 7, 0)
                      , Proxy
 #endif
+#if !MIN_VERSION_base(4, 8, 0)
+                     , Void
+#endif
                      )
 
 
@@ -60,4 +63,11 @@ instance Hashable (Proxy a) where
 ------------------------------------------------------------------------------
 instance Hashable1 Proxy where
     liftHashWithSalt _ s _ = s
+#endif
+#if !MIN_VERSION_base(4, 8, 0)
+
+
+------------------------------------------------------------------------------
+instance Hashable Void where
+    hashWithSalt s = absurd
 #endif

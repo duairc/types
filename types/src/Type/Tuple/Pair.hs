@@ -8,6 +8,8 @@
 {-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE UndecidableInstances #-}
 
+#include "kinds.h"
+
 #ifdef DataPolyKinds
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE PolyKinds #-}
@@ -16,8 +18,6 @@
 #ifdef SafeHaskell
 {-# LANGUAGE Safe #-}
 #endif
-
-#include "kinds.h"
 
 module Type.Tuple.Pair
     ( Pair
@@ -31,8 +31,6 @@ where
 import           Data.Typeable (Typeable)
 
 
-#endif
-#ifndef DataPolyKinds
 -- types ---------------------------------------------------------------------
 import {-# SOURCE #-} Type.Bool ((:&&))
 import           Type.Eq ((:==))

@@ -5,14 +5,11 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE MagicHash #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
-
-#include "kinds.h"
 
 #ifdef DataPolyKinds
 {-# LANGUAGE DataKinds #-}
@@ -34,7 +31,7 @@ module GHC.Generics.Compat
     , (:*:) ((:*:))
     , (:.:) (Comp1, unComp1)
 
-#if __GLASGOW_HASKELL__ >= 800
+#if MIN_VERSION_base(4, 9, 0)
     , URec
         ( UAddr
         , UChar
@@ -101,27 +98,27 @@ module GHC.Generics.Compat
 where
 
 -- base ----------------------------------------------------------------------
-#if __GLASGOW_HASKELL__ < 800
+#if !MIN_VERSION_base(4, 9, 0)
 import          Data.Ix (Ix)
 #endif
 import          GHC.Generics
-#if __GLASGOW_HASKELL__ >= 710
+#if MIN_VERSION_base(4, 8, 0)
 import          Numeric.Natural (Natural)
 #endif
 
 
 -- types ---------------------------------------------------------------------
-#if defined(DataPolyKinds) && __GLASGOW_HASKELL__ < 800
+#if defined(DataPolyKinds) && !MIN_VERSION_base(4, 9, 0)
 import          GHC.TypeLits.Compat (Nat, Symbol)
 #endif
-#if __GLASGOW_HASKELL__ < 800
+#if !MIN_VERSION_base(4, 9, 0)
 import          Type.Maybe (Just, Nothing)
 #endif
 import          Type.Meta (Known, Val, val, Proxy (Proxy))
 
 
 ------------------------------------------------------------------------------
-#if __GLASGOW_HASKELL__ >= 710
+#if MIN_VERSION_base(4, 8, 0)
 type NatVal = Natural
 #else
 type NatVal = Integer
@@ -133,7 +130,7 @@ type NatVal = Integer
 type Nat = NatVal
 type Symbol = String
 #endif
-#if __GLASGOW_HASKELL__ < 800
+#if !MIN_VERSION_base(4, 9, 0)
 
 
 ------------------------------------------------------------------------------
@@ -183,7 +180,7 @@ type InfixI = 'InfixI
 type LeftAssociative = 'LeftAssociative
 type RightAssociative = 'RightAssociative
 type NotAssociative = 'NotAssociative
-#if __GLASGOW_HASKELL__ >= 800
+#if MIN_VERSION_base(4, 9, 0)
 type MetaData = 'MetaData
 type MetaCons = 'MetaCons
 type MetaSel = 'MetaSel
@@ -269,7 +266,7 @@ instance Known SourceNoUnpack where
 instance Known SourceUnpack where
     type Val SourceUnpack = SourceUnpackedness
     val _ = SourceUnpack
-#if __GLASGOW_HASKELL__ < 800
+#if !MIN_VERSION_base(4, 9, 0)
 
 
 ------------------------------------------------------------------------------
@@ -282,7 +279,7 @@ instance
   where
     datatypeName _ = val (Proxy :: Proxy n)
     moduleName _ = val (Proxy :: Proxy m)
-#if __GLASGOW_HASKELL__ >= 708
+#if MIN_VERSION_base(4, 7, 0)
     isNewtype _ = val (Proxy :: Proxy nt)
 #endif
 

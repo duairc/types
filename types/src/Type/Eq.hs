@@ -4,20 +4,20 @@
 {-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE UndecidableInstances #-}
 
+#include "kinds.h"
+
 #ifdef DataPolyKinds
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE PolyKinds #-}
 #endif
 
 #ifdef SafeHaskell
-#if defined(DataPolyKinds) && __GLASGOW_HASKELL__ >= 706 && __GLASGOW_HASKELL__ < 800
+#if defined(DataPolyKinds) && MIN_VERSION_base(4, 6, 0) && !MIN_VERSION_base(4, 9, 0)
 {-# LANGUAGE Trustworthy #-}
 #else
 {-# LANGUAGE Safe #-}
 #endif
 #endif
-
-#include "kinds.h"
 
 module Type.Eq
     ( (:==)
@@ -25,14 +25,14 @@ module Type.Eq
     )
 where
 
-#if __GLASGOW_HASKELL__ >= 706 && defined(DataPolyKinds)
+#ifdef DataPolyKinds
 -- base ----------------------------------------------------------------------
-#if __GLASGOW_HASKELL__ >= 708
+#if MIN_VERSION_base(4, 7, 0)
 import           Data.Type.Equality (type (==))
 #endif
 import           GHC.TypeLits
                      ( Nat
-#if __GLASGOW_HASKELL__ >= 708
+#if MIN_VERSION_base(4, 7, 0)
                      , Symbol
 #else
                      , type (<=?)
@@ -137,9 +137,9 @@ type instance '(a, b, c, d, e, f, g) :== '(a', b', c', d', e', f', g') =
         f :== f' :&& g :== g'
 
 
-#if __GLASGOW_HASKELL__ >= 706
+#if MIN_VERSION_base(4, 6, 0)
 ------------------------------------------------------------------------------
-#if __GLASGOW_HASKELL__ < 708
+#if !MIN_VERSION_base(4, 7, 0)
 type instance (a :: Nat) :== (b :: Nat) = a <=? b :&& b <=? a
 #else
 type instance (a :: Nat) :== (b :: Nat) = a == b

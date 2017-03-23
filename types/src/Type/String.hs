@@ -12,20 +12,20 @@
 {-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE UndecidableInstances #-}
 
+#include "kinds.h"
+
 #ifdef DataPolyKinds
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE PolyKinds #-}
 #endif
 
 #ifdef SafeHaskell
-#if __GLASGOW_HASKELL__ >= 708 && __GLASGOW_HASKELL__ < 800
+#if MIN_VERSION_base(4, 7, 0) && !MIN_VERSION_base(4, 9, 0)
 {-# LANGUAGE Trustworthy #-}
 #else
 {-# LANGUAGE Safe #-}
 #endif
 #endif
-
-#include "kinds.h"
 
 module Type.String
     ( String
@@ -36,7 +36,7 @@ module Type.String
 where
 
 -- base ----------------------------------------------------------------------
-#if __GLASGOW_HASKELL__ >= 708 && defined(DataPolyKinds)
+#if MIN_VERSION_base(4, 7, 0) && defined(DataPolyKinds)
 import           Data.Type.Equality (type (==))
 #endif
 import           Data.Typeable (Typeable)
@@ -61,7 +61,7 @@ type String = 'String
 ------------------------------------------------------------------------------
 data Symbol = String (KList (KChar))
   deriving (Typeable)
-#if __GLASGOW_HASKELL__ >= 708
+#ifdef PolyTypeable
 deriving instance Typeable String
 #endif
 #else
@@ -77,7 +77,7 @@ instance (Known cs, Val cs ~ S.String) => Known (String cs) where
     {-# INLINE val #-}
 
 
-#if __GLASGOW_HASKELL__ >= 708 && defined(DataPolyKinds)
+#if MIN_VERSION_base(4, 7, 0) && defined(DataPolyKinds)
 ------------------------------------------------------------------------------
 type instance (as :: KString) == (bs :: KString) = as :== bs
 

@@ -3,6 +3,8 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
 
+#include "kinds.h"
+
 #ifdef DataPolyKinds
 {-# LANGUAGE PolyKinds #-}
 #endif
@@ -10,8 +12,6 @@
 #ifdef SafeHaskell
 {-# LANGUAGE Safe #-}
 #endif
-
-#include "kinds.h"
 
 module Type.Bits
     ( (:.&.)

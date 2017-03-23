@@ -28,11 +28,11 @@
 {-# LANGUAGE Trustworthy #-}
 #endif
 
-#if __GLASGOW_HASKELL__ >= 711
+#ifdef KindsAreTypes
 {-# LANGUAGE TypeInType #-}
 #endif
 
-#if __GLASGOW_HASKELL__ >= 708
+#if MIN_VERSION_base(4, 7, 0)
 {-# OPTIONS_GHC -fno-warn-deprecations #-}
 #endif
 
@@ -54,45 +54,45 @@ module Type.Meta
 where
 
 -- base ----------------------------------------------------------------------
-#if __GLASGOW_HASKELL__ < 710
+#if !MIN_VERSION_base(4, 8, 0)
 import           Control.Applicative (Applicative, pure, (<*>))
 #endif
 import           Control.Applicative (liftA2)
 import           Control.Arrow ((***))
-#if __GLASGOW_HASKELL__ < 708
+#if !MIN_VERSION_base(4, 7, 0)
 import           Control.Category (Category, id, (.))
 #endif
-#if __GLASGOW_HASKELL__ < 710
+#if !MIN_VERSION_base(4, 8, 0)
 import           Control.Exception (Exception)
 #endif
 import           Control.Monad (guard)
-#if __GLASGOW_HASKELL__ >= 800
+#if MIN_VERSION_base(4, 9, 0)
 import           Data.Bifunctor (first)
 #endif
 import           Data.Bits
                      ( Bits
-#if __GLASGOW_HASKELL__ >= 708
+#if MIN_VERSION_base(4, 7, 0)
                      , FiniteBits
 #endif
                      , (.&.)
                      , (.|.)
                      , bit
                      , bitSize
-#if __GLASGOW_HASKELL__ >= 708
+#if MIN_VERSION_base(4, 7, 0)
                      , bitSizeMaybe
 #endif
                      , clearBit
                      , complement
                      , complementBit
-#if __GLASGOW_HASKELL__ >= 710
+#if MIN_VERSION_base(4, 8, 0)
                      , countLeadingZeros
                      , countTrailingZeros
 #endif
-#if __GLASGOW_HASKELL__ >= 708
+#if MIN_VERSION_base(4, 7, 0)
                      , finiteBitSize
 #endif
                      , isSigned
-#if __GLASGOW_HASKELL__ >= 704
+#if MIN_VERSION_base(4, 5, 0)
                      , popCount
 #endif
                      , rotate
@@ -103,20 +103,20 @@ import           Data.Bits
                      , shiftL
                      , shiftR
                      , testBit
-#if __GLASGOW_HASKELL__ >= 704
+#if MIN_VERSION_base(4, 5, 0)
                      , unsafeShiftL
                      , unsafeShiftR
 #endif
                      , xor
-#if __GLASGOW_HASKELL__ >= 708
+#if MIN_VERSION_base(4, 7, 0)
                      , zeroBits
 #endif
                      )
-#if __GLASGOW_HASKELL__ < 710
+#if !MIN_VERSION_base(4, 8, 0)
 import           Data.Foldable
                      ( Foldable
                      , foldMap
-#if __GLASGOW_HASKELL__ < 708
+#if !MIN_VERSION_base(4, 7, 0)
                      , fold
                      , foldl
                      , foldr
@@ -125,7 +125,7 @@ import           Data.Foldable
 #endif
                      )
 #endif
-#if __GLASGOW_HASKELL__ >= 800
+#if MIN_VERSION_base(4, 9, 0)
 import           Data.Functor.Classes
                      ( Eq1
                      , Ord1
@@ -146,35 +146,35 @@ import           Data.Ix
                      , inRange
                      , rangeSize
                      )
-#if __GLASGOW_HASKELL__ >= 711
+#ifdef KindsAreTypes
 import           Data.Kind (Type)
 #endif
-#if __GLASGOW_HASKELL__ < 710
+#if !MIN_VERSION_base(4, 8, 0)
 import           Data.Monoid (Monoid, mappend, mempty, mconcat)
 #endif
-#if __GLASGOW_HASKELL__ >= 708
+#if MIN_VERSION_base(4, 7, 0)
 import           Data.Proxy (Proxy (Proxy))
 #endif
-#if __GLASGOW_HASKELL__ >= 711
+#if MIN_VERSION_base(4, 9, 0)
 import           Data.Semigroup (Semigroup, (<>))
 #endif
 import           Data.String (IsString, fromString)
-#if __GLASGOW_HASKELL__ < 710
+#if !MIN_VERSION_base(4, 8, 0)
 import           Data.Traversable
                      ( Traversable
                      , traverse
-#if __GLASGOW_HASKELL__ < 708
+#if !MIN_VERSION_base(4, 7, 0)
                      , sequenceA
                      , mapM
                      , sequence
 #endif
                      )
 #endif
-#if __GLASGOW_HASKELL__ >= 708
+#if MIN_VERSION_base(4, 7, 0)
 import           Data.Type.Equality ((:~:) (Refl), TestEquality, testEquality)
 #endif
 import           Data.Typeable (Typeable)
-#if __GLASGOW_HASKELL__ >= 710
+#if MIN_VERSION_base(4, 8, 0)
 import           Data.Void (Void, absurd)
 #endif
 import           Foreign.Ptr (castPtr)
@@ -183,7 +183,7 @@ import           Foreign.Storable (Storable, alignment, peek, poke, sizeOf)
 import           GHC.Generics
                      ( Generic, Rep, to, from, Generic1, Rep1, from1, to1
                      , C1, D1, K1 (K1), M1 (M1), S1, U1 (U1), Rec0, Par1 (Par1)
-#if __GLASGOW_HASKELL__ >= 800
+#if MIN_VERSION_base(4, 9, 0)
                      , DecidedStrictness (DecidedLazy)
                      , FixityI (PrefixI)
                      , Meta (MetaCons, MetaData, MetaSel)
@@ -195,11 +195,11 @@ import           GHC.Generics
 #endif
                      )
 #endif
-#if __GLASGOW_HASKELL__ >= 706 && defined(DataPolyKinds)
+#if MIN_VERSION_base(4, 6, 0) && defined(DataPolyKinds)
 import           GHC.TypeLits
                      ( Nat
                      , Symbol
-#if __GLASGOW_HASKELL__ >= 708
+#if MIN_VERSION_base(4, 7, 0)
                      , KnownNat
                      , natVal
                      , KnownSymbol
@@ -214,10 +214,10 @@ import qualified GHC.TypeLits as G
 #endif
                      )
 #endif
-#if __GLASGOW_HASKELL__ >= 710 && defined (DataPolyKinds)
+#if MIN_VERSION_base(4, 8, 0) && defined (DataPolyKinds)
 import           Numeric.Natural (Natural)
 #endif
-#if __GLASGOW_HASKELL__ < 708
+#if !MIN_VERSION_base(4, 7, 0)
 import           Prelude hiding
                      ( (.)
                      , foldl
@@ -388,12 +388,12 @@ instance Known a => Known ('Right a :: Either k k) where
     type Val ('Right a :: Either k k) = Either Void (Val a)
     val _ = Right (val (Proxy :: Proxy a))
     {-# INLINE val #-}
-#if __GLASGOW_HASKELL__ >= 706
+#if MIN_VERSION_base(4, 6, 0)
 
 
 ------------------------------------------------------------------------------
 instance
-#if __GLASGOW_HASKELL__ >= 708
+#if MIN_VERSION_base(4, 7, 0)
     KnownSymbol a
 #else
     SingRep a String
@@ -402,7 +402,7 @@ instance
     Known (a :: Symbol)
   where
     type Val (a :: Symbol) = String
-#if __GLASGOW_HASKELL__ >= 708
+#if MIN_VERSION_base(4, 7, 0)
     val = symbolVal
 #else
     val _ = fromSing (sing :: G.Sing a)
@@ -412,7 +412,7 @@ instance
 
 ------------------------------------------------------------------------------
 instance
-#if __GLASGOW_HASKELL__ >= 708
+#if MIN_VERSION_base(4, 7, 0)
     KnownNat a
 #else
     SingRep a Integer
@@ -420,12 +420,12 @@ instance
   =>
     Known (a :: Nat)
   where
-#if __GLASGOW_HASKELL__ >= 710
+#if MIN_VERSION_base(4, 8, 0)
     type Val (a :: Nat) = Natural
 #else
     type Val (a :: Nat) = Integer
 #endif
-#if __GLASGOW_HASKELL__ >= 708
+#if MIN_VERSION_base(4, 7, 0)
     val = fromInteger . natVal
 #else
     val _ = fromSing (sing :: G.Sing a)
@@ -437,7 +437,7 @@ instance
 
 ------------------------------------------------------------------------------
 data Sing r a = (Known a, Val a ~ r) => Sing !(Proxy a)
-#if !defined(DataPolyKinds) || __GLASGOW_HASKELL__ >= 708
+#if !defined(DataPolyKinds) || defined(PolyTypeable)
   deriving (Typeable)
 #endif
 
@@ -493,7 +493,7 @@ instance (Known a, Val a ~ r) => Ix (Sing r a) where
     rangeSize _ = 1
 
 
-#if __GLASGOW_HASKELL__ >= 711
+#if MIN_VERSION_base(4, 9, 0)
 ------------------------------------------------------------------------------
 instance Semigroup (Sing r a) where
     a <> _ = a
@@ -565,7 +565,7 @@ instance (IsString r, Eq r, Known a, Val a ~ r) => IsString (Sing r a) where
 
 #ifdef GenericDeriving
 ------------------------------------------------------------------------------
-#if __GLASGOW_HASKELL__ >= 800
+#if MIN_VERSION_base(4, 9, 0)
 type SingD1 = 'MetaData "Sing" "Type.Meta" "types" 'False
 type SingC1 = 'MetaCons "Sing" 'PrefixI 'False
 #else
@@ -594,12 +594,12 @@ instance (Known a, Val a ~ r) => Generic (Sing r a) where
 
 #endif
 ------------------------------------------------------------------------------
-#if __GLASGOW_HASKELL__ >= 711
+#ifdef KindsAreTypes
 data Some r = forall (k :: Type) (a :: k). Some !(Sing r (a :: k))
 #else
 data Some r = forall a. Some !(Sing r a)
 #endif
-#if !defined(DataPolyKinds) || __GLASGOW_HASKELL__ >= 708
+#if !defined(DataPolyKinds) || defined(PolyTypeable)
   deriving (Typeable)
 #endif
 
@@ -631,7 +631,7 @@ instance Traversable Some where
     traverse f (Some (Sing a)) = fmap someVal (f (val a))
 
 
-#if __GLASGOW_HASKELL__ >= 800
+#if MIN_VERSION_base(4, 9, 0)
 ------------------------------------------------------------------------------
 instance Eq1 Some where
     liftEq eq (Some (Sing a)) (Some (Sing b)) = eq (val a) (val b)
@@ -698,7 +698,7 @@ instance Ix r => Ix (Some r) where
         inRange (val a, val b) (val i)
 
 
-#if __GLASGOW_HASKELL__ >= 711
+#if MIN_VERSION_base(4, 9, 0)
 ------------------------------------------------------------------------------
 instance Semigroup r => Semigroup (Some r) where
     (<>) = liftA2 (<>)
@@ -825,12 +825,12 @@ instance Bits r => Bits (Some r) where
     testBit (Some (Sing a)) i = testBit (val a) i
     isSigned (Some (Sing a)) = isSigned (val a)
     bitSize (Some (Sing a)) = bitSize (val a)
-#if __GLASGOW_HASKELL__ >= 704
+#if MIN_VERSION_base(4, 5, 0)
     unsafeShiftL a i = fmap (flip unsafeShiftL i) a
     unsafeShiftR a i = fmap (flip unsafeShiftR i) a
     popCount (Some (Sing a)) = popCount (val a)
 #endif
-#if __GLASGOW_HASKELL__ >= 708
+#if MIN_VERSION_base(4, 7, 0)
     bitSizeMaybe (Some (Sing a)) = bitSizeMaybe (val a)
     zeroBits = pure zeroBits
 
@@ -838,7 +838,7 @@ instance Bits r => Bits (Some r) where
 ------------------------------------------------------------------------------
 instance FiniteBits r => FiniteBits (Some r) where
     finiteBitSize (Some (Sing a)) = finiteBitSize (val a)
-#if __GLASGOW_HASKELL__ >= 710
+#if MIN_VERSION_base(4, 8, 0)
     countLeadingZeros (Some (Sing a)) = countLeadingZeros (val a)
     countTrailingZeros (Some (Sing a)) = countTrailingZeros (val a)
 #endif
@@ -852,7 +852,7 @@ instance IsString r => IsString (Some r) where
 
 #ifdef GenericDeriving
 ------------------------------------------------------------------------------
-#if __GLASGOW_HASKELL__ >= 800
+#if MIN_VERSION_base(4, 9, 0)
 type SomeD1 = 'MetaData "Some" "Type.Meta" "types" 'False
 type SomeC1 = 'MetaCons "Some" 'PrefixI 'False
 type SomeS1 =
@@ -931,13 +931,13 @@ newtype EqF a b c = EqF ((a ~ b) => c)
 ------------------------------------------------------------------------------
 withEq :: forall a b c. a :~: b -> EqF a b c -> c
 withEq Refl (EqF c) = c
-#if __GLASGOW_HASKELL__ < 708
+#if !MIN_VERSION_base(4, 7, 0)
 
 
 ------------------------------------------------------------------------------
 data a :~: b where
     Refl :: a :~: a
-#ifndef DataPolyKinds
+#if !defined(DataPolyKinds) || defined(PolyTypeable)
   deriving (Typeable)
 #endif
 deriving instance Show (a :~: b)
@@ -994,7 +994,7 @@ data Proxy a = Proxy
 #ifdef GenericDeriving
     , Generic
 #endif
-#if !defined(DataPolyKinds) || __GLASGOW_HASKELL__ >= 708
+#if !defined(DataPolyKinds) || defined(PolyTypeable)
     , Typeable
 #endif
     )
@@ -1073,7 +1073,7 @@ instance Monoid (Proxy a) where
 
 
 #endif
-#if __GLASGOW_HASKELL__ < 710
+#if !MIN_VERSION_base(4, 8, 0)
 ------------------------------------------------------------------------------
 data Void
   deriving

@@ -9,6 +9,8 @@
 {-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE UndecidableInstances #-}
 
+#include "kinds.h"
+
 #ifdef DataPolyKinds
 {-# LANGUAGE PolyKinds #-}
 {-# LANGUAGE DataKinds #-}
@@ -17,8 +19,6 @@
 #ifdef SafeHaskell
 {-# LANGUAGE Safe #-}
 #endif
-
-#include "kinds.h"
 
 module Type.Ordering
     ( LT

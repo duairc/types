@@ -9,6 +9,8 @@
 {-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE UndecidableInstances #-}
 
+#include "kinds.h"
+
 #ifdef DataPolyKinds
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE PolyKinds #-}
@@ -17,8 +19,6 @@
 #ifdef SafeHaskell
 {-# LANGUAGE Safe #-}
 #endif
-
-#include "kinds.h"
 
 module Type.Either
     ( Left
@@ -30,23 +30,11 @@ module Type.Either
     )
 where
 
-#ifndef DataPolyKinds
--- base ----------------------------------------------------------------------
-import           Data.Typeable (Typeable)
-
-
-#endif
+#ifdef DataPolyKinds
 -- types ---------------------------------------------------------------------
 import           Type.Bool (True, False)
-#ifndef DataPolyKinds
-import           Type.Eq ((:==))
-import           Type.Meta (Known, Val, val, Proxy (Proxy), Void)
-import           Type.Ord (Compare)
-import           Type.Ordering (LT, GT)
-import           Type.Semigroup ((:<>))
 
-#endif
-#ifdef DataPolyKinds
+
 ------------------------------------------------------------------------------
 type Left = 'Left
 
@@ -54,6 +42,19 @@ type Left = 'Left
 ------------------------------------------------------------------------------
 type Right = 'Right
 #else
+-- base ----------------------------------------------------------------------
+import           Data.Typeable (Typeable)
+
+
+-- types ---------------------------------------------------------------------
+import           Type.Bool (True, False)
+import           Type.Eq ((:==))
+import           Type.Meta (Known, Val, val, Proxy (Proxy), Void)
+import           Type.Ord (Compare)
+import           Type.Ordering (LT, GT)
+import           Type.Semigroup ((:<>))
+
+
 ------------------------------------------------------------------------------
 data Left a
   deriving (Typeable)

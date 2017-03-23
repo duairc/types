@@ -10,29 +10,28 @@
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE UndecidableInstances #-}
 
+#include "kinds.h"
+
 #ifdef DataPolyKinds
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE PolyKinds #-}
 #endif
 
 #ifdef SafeHaskell
-#if __GLASGOW_HASKELL__ >= 708 && __GLASGOW_HASKELL__ < 800
+#if MIN_VERSION_base(4, 7, 0) && !MIN_VERSION_base(4, 9, 0)
 {-# LANGUAGE Trustworthy #-}
 #else
 {-# LANGUAGE Safe #-}
 #endif
 #endif
 
-#include "kinds.h"
-
 module Type.Natural
     (
 #ifdef DataPolyKinds
       Nat
-    , Natural
-#else
-      Natural
+    ,
 #endif
+      Natural
     , Zero
     , One
     )
@@ -40,11 +39,11 @@ where
 
 -- base ----------------------------------------------------------------------
 import           Data.Bits ((.|.), shiftL)
-#if __GLASGOW_HASKELL__ >= 708 && defined(DataPolyKinds)
+#if MIN_VERSION_base(4, 7, 0) && defined(DataPolyKinds)
 import           Data.Type.Equality (type (==))
 #endif
 import           Data.Typeable (Typeable)
-#if __GLASGOW_HASKELL__ >= 710
+#if MIN_VERSION_base(4, 8, 0)
 import qualified Numeric.Natural as N (Natural)
 #endif
 
@@ -71,7 +70,7 @@ type Natural = 'Natural
 ------------------------------------------------------------------------------
 data Nat = Natural (KList (KBool))
   deriving (Typeable)
-#if __GLASGOW_HASKELL__ >= 708
+#ifdef PolyTypeable
 deriving instance Typeable Natural
 #endif
 #else
@@ -83,7 +82,7 @@ data Natural (ns :: KList (KBool))
 ------------------------------------------------------------------------------
 instance Known (Natural Nil) where
     type Val (Natural Nil) =
-#if __GLASGOW_HASKELL__ >= 710
+#if MIN_VERSION_base(4, 8, 0)
         N.Natural
 #else
         Integer
@@ -97,7 +96,7 @@ instance (Known (Cons a as), Val (Cons a as) ~ [Bool]) =>
     Known (Natural (Cons a as))
   where
     type Val (Natural (Cons a as)) =
-#if __GLASGOW_HASKELL__ >= 710
+#if MIN_VERSION_base(4, 8, 0)
         N.Natural
 #else
         Integer
@@ -116,7 +115,7 @@ type Zero = Natural Nil
 type One = Natural (Cons True Nil)
 
 
-#if __GLASGOW_HASKELL__ >= 708 && defined(DataPolyKinds)
+#if MIN_VERSION_base(4, 7, 0) && defined(DataPolyKinds)
 ------------------------------------------------------------------------------
 type instance (a :: KNatural) == (b :: KNatural) = a :== b
 

@@ -2,6 +2,8 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
 
+#include "kinds.h"
+
 #ifdef DataPolyKinds
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE PolyKinds #-}
@@ -10,8 +12,6 @@
 #ifdef SafeHaskell
 {-# LANGUAGE Safe #-}
 #endif
-
-#include "kinds.h"
 
 module Type.Semigroup
     ( (:<>)

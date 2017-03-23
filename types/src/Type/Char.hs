@@ -10,37 +10,40 @@
 {-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE UndecidableInstances #-}
 
+#include "kinds.h"
+
 #ifdef DataPolyKinds
 {-# LANGUAGE DataKinds #-}
 #endif
 
 #ifdef SafeHaskell
-#if __GLASGOW_HASKELL__ >= 708 && __GLASGOW_HASKELL__ < 800
+#if MIN_VERSION_base(4, 7, 0) && !MIN_VERSION_base(4, 9, 0)
 {-# LANGUAGE Trustworthy #-}
 #else
 {-# LANGUAGE Safe #-}
 #endif
 #endif
 
-#include "kinds.h"
-
 module Type.Char
     (
 #ifdef DataPolyKinds
       KChar
-    , Char
-#else
-      Char
+    ,
 #endif
+      Char
     )
 where
 
 -- base ----------------------------------------------------------------------
 import           Data.Bits ((.|.), shiftL)
 import qualified Data.Char as C (Char)
-#if __GLASGOW_HASKELL__ >= 708 && defined(DataPolyKinds)
+#ifdef DataPolyKinds
+#if MIN_VERSION_base(4, 7, 0)
 import           Data.Type.Equality (type (==))
+#endif
+#ifdef PolyTypeable
 import           Data.Typeable (Typeable)
+#endif
 #endif
 import           Prelude hiding (Char)
 
@@ -64,7 +67,7 @@ data KChar = Char
     !KBool !KBool !KBool !KBool !KBool !KBool !KBool !KBool
     !KBool !KBool !KBool !KBool !KBool !KBool !KBool !KBool
     !KBool !KBool !KBool !KBool !KBool !KBool !KBool !KBool
-#if __GLASGOW_HASKELL__ >= 708
+#ifdef PolyTypeable
 deriving instance Typeable Char
 #endif
 #else
@@ -126,44 +129,28 @@ instance
             C.Char
     val _ = do
         let bits =
-             [ val (Proxy :: Proxy b00)
-             , val (Proxy :: Proxy b01)
-             , val (Proxy :: Proxy b02)
-             , val (Proxy :: Proxy b03)
-             , val (Proxy :: Proxy b04)
-             , val (Proxy :: Proxy b05)
-             , val (Proxy :: Proxy b06)
-             , val (Proxy :: Proxy b07)
-             , val (Proxy :: Proxy b08)
-             , val (Proxy :: Proxy b09)
-             , val (Proxy :: Proxy b10)
-             , val (Proxy :: Proxy b11)
-             , val (Proxy :: Proxy b12)
-             , val (Proxy :: Proxy b13)
-             , val (Proxy :: Proxy b14)
-             , val (Proxy :: Proxy b15)
-             , val (Proxy :: Proxy b16)
-             , val (Proxy :: Proxy b17)
-             , val (Proxy :: Proxy b18)
-             , val (Proxy :: Proxy b19)
-             , val (Proxy :: Proxy b20)
-             , val (Proxy :: Proxy b21)
-             , val (Proxy :: Proxy b22)
-             , val (Proxy :: Proxy b23)
-             , val (Proxy :: Proxy b24)
-             , val (Proxy :: Proxy b25)
-             , val (Proxy :: Proxy b26)
-             , val (Proxy :: Proxy b27)
-             , val (Proxy :: Proxy b28)
-             , val (Proxy :: Proxy b29)
-             , val (Proxy :: Proxy b30)
-             , val (Proxy :: Proxy b31)
+             [ val (Proxy :: Proxy b00), val (Proxy :: Proxy b01)
+             , val (Proxy :: Proxy b02), val (Proxy :: Proxy b03)
+             , val (Proxy :: Proxy b04), val (Proxy :: Proxy b05)
+             , val (Proxy :: Proxy b06), val (Proxy :: Proxy b07)
+             , val (Proxy :: Proxy b08), val (Proxy :: Proxy b09)
+             , val (Proxy :: Proxy b10), val (Proxy :: Proxy b11)
+             , val (Proxy :: Proxy b12), val (Proxy :: Proxy b13)
+             , val (Proxy :: Proxy b14), val (Proxy :: Proxy b15)
+             , val (Proxy :: Proxy b16), val (Proxy :: Proxy b17)
+             , val (Proxy :: Proxy b18), val (Proxy :: Proxy b19)
+             , val (Proxy :: Proxy b20), val (Proxy :: Proxy b21)
+             , val (Proxy :: Proxy b22), val (Proxy :: Proxy b23)
+             , val (Proxy :: Proxy b24), val (Proxy :: Proxy b25)
+             , val (Proxy :: Proxy b26), val (Proxy :: Proxy b27)
+             , val (Proxy :: Proxy b28), val (Proxy :: Proxy b29)
+             , val (Proxy :: Proxy b30), val (Proxy :: Proxy b31)
              ]
         toEnum $ foldr (\b c -> shiftL c 1 .|. if b then 1 else 0) 0 bits
     {-# INLINE val #-}
 
 
-#if __GLASGOW_HASKELL__ >= 708 && defined(DataPolyKinds)
+#if MIN_VERSION_base(4, 7, 0) && defined(DataPolyKinds)
 ------------------------------------------------------------------------------
 type instance (a :: KChar) == (b :: KChar) = a :== b
 

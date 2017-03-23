@@ -4,20 +4,20 @@
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UndecidableInstances #-}
 
+#include "kinds.h"
+
 #ifdef DataPolyKinds
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE PolyKinds #-}
 #endif
 
 #ifdef SafeHaskell
-#if defined(DataPolyKinds) && __GLASGOW_HASKELL__ >= 706 && __GLASGOW_HASKELL__ < 710
+#if defined(DataPolyKinds) && MIN_VERSION_base(4, 6, 0) && !MIN_VERSION_base(4, 8, 0)
 {-# LANGUAGE Trustworthy #-}
 #else
 {-# LANGUAGE Safe #-}
 #endif
 #endif
-
-#include "kinds.h"
 
 module Type.Num
     ( (:+)
@@ -27,14 +27,14 @@ module Type.Num
     )
 where
 
-#if __GLASGOW_HASKELL__ >= 706 && defined(DataPolyKinds)
+#if MIN_VERSION_base(4, 6, 0) && defined(DataPolyKinds)
 -- base ----------------------------------------------------------------------
 import           GHC.TypeLits
                      ( Nat
                      , type (+)
                      , type (*)
                      , type (^)
-#if __GLASGOW_HASKELL__ >= 708
+#if MIN_VERSION_base(4, 7, 0)
                      , type (-)
 #endif
                      )
@@ -59,7 +59,7 @@ infixl 7 :*
 ------------------------------------------------------------------------------
 type family (a :: KPoly1) :^ (b :: KPoly1) :: KPoly1
 infixr 8 :^
-#if __GLASGOW_HASKELL__ >= 706 && defined(DataPolyKinds)
+#if MIN_VERSION_base(4, 6, 0) && defined(DataPolyKinds)
 
 
 ------------------------------------------------------------------------------
@@ -72,7 +72,7 @@ type instance (a :: Nat) :* (b :: Nat) = a * b
 
 ------------------------------------------------------------------------------
 type instance (a :: Nat) :^ (b :: Nat) = a ^ b
-#if __GLASGOW_HASKELL__ >= 708
+#if MIN_VERSION_base(4, 7, 0)
 
 
 ------------------------------------------------------------------------------

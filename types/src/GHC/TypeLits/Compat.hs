@@ -12,20 +12,20 @@
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UndecidableInstances #-}
 
-#ifdef SafeHaskell
-#if defined(UseTypeLits) && __GLASGOW_HASKELL__ >= 710
-{-# LANGUAGE Safe #-}
-#else
-{-# LANGUAGE Trustworthy #-}
-#endif
-#endif
+#include "kinds.h"
 
 #ifdef DataPolyKinds
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE PolyKinds #-}
 #endif
 
-#include "kinds.h"
+#ifdef SafeHaskell
+#if defined(UseTypeLits) && MIN_VERSION_base(4, 8, 0)
+{-# LANGUAGE Safe #-}
+#else
+{-# LANGUAGE Trustworthy #-}
+#endif
+#endif
 
 module GHC.TypeLits.Compat
     (
@@ -62,23 +62,12 @@ module GHC.TypeLits.Compat
 where
 
 -- base ----------------------------------------------------------------------
-#if defined(DataPolyKinds) && __GLASGOW_HASKELL__ < 708
-import           GHC.Exts (Any)
-#endif
 #ifdef UseTypeLits
 import           GHC.TypeLits
-                     ( Nat
-                     , Symbol
-                     , KnownNat
-                     , natVal
-                     , KnownSymbol
-                     , symbolVal
-                     , SomeNat (SomeNat)
-                     , SomeSymbol (SomeSymbol)
-                     , someNatVal
-                     , someSymbolVal
-                     , sameNat
-                     , sameSymbol
+                     ( Nat, KnownNat, natVal
+                     , Symbol, KnownSymbol, symbolVal
+                     , SomeNat (SomeNat), someNatVal, sameNat
+                     , SomeSymbol (SomeSymbol), someSymbolVal, sameSymbol
                      , type (<=)
                      , type (<=?)
                      , type (+)
@@ -88,37 +77,66 @@ import           GHC.TypeLits
                      , CmpNat
                      , CmpSymbol
                      )
+
+
+------------------------------------------------------------------------------
+class (<=) a b => (:<=) a b
+
+
+------------------------------------------------------------------------------
+instance (<=) a b => (:<=) a b
+
+
+------------------------------------------------------------------------------
+type a :<=? b = a <=? b
+
+
+------------------------------------------------------------------------------
+type a :+ b = a + b
+
+
+------------------------------------------------------------------------------
+type a :- b = a - b
+
+
+------------------------------------------------------------------------------
+type a :* b = a * b
+
+
+------------------------------------------------------------------------------
+type a :^ b = a ^ b
+
+
+------------------------------------------------------------------------------
+type Zero = 0
+
+
+------------------------------------------------------------------------------
+type One = 1
 #else
 import           Data.Typeable (Typeable)
+import           GHC.Exts (Any)
 import           Unsafe.Coerce (unsafeCoerce)
-#endif
 
 
 -- types ---------------------------------------------------------------------
-#ifndef UseTypeLits
 import           Type.Bool (True)
 import           Type.Meta (Known, Val, val, Proxy (Proxy), (:~:) (Refl))
-#endif
-#ifndef UseTypeLits
 import           Type.Natural
                      (
 #ifdef DataPolyKinds
                        Nat
                      ,
 #endif
-                       Zero
-                     , One
+                       One
+                     , Zero
                      )
-#endif
-#ifndef UseTypeLits
 import qualified Type.Num as N ((:+), (:-), (:*), (:^))
 import           Type.Ord (Compare)
 import qualified Type.Ord as O ((:<=))
-#endif
-#if !defined(UseTypeLits) && defined(DataPolyKinds)
+#ifdef DataPolyKinds
 import           Type.String (Symbol)
 #endif
-#ifndef UseTypeLits
 
 
 ------------------------------------------------------------------------------
@@ -213,12 +231,6 @@ someSymbolVal :: String -> SomeSymbol
 someSymbolVal n = withSymbolVal p n SomeSymbol p
   where
     p = Proxy :: Proxy Any
-#if !defined(DataPolyKinds) || defined(DataPolyKinds) && __GLASGOW_HASKELL__ >= 708
-
-
-------------------------------------------------------------------------------
-type family Any :: KPoly1
-#endif
 
 
 ------------------------------------------------------------------------------
@@ -229,7 +241,8 @@ sameNat x y
 
 
 ------------------------------------------------------------------------------
-sameSymbol :: (KnownSymbol a, KnownSymbol b) => Proxy a -> Proxy b -> Maybe (a :~: b)
+sameSymbol
+    :: (KnownSymbol a, KnownSymbol b) => Proxy a -> Proxy b -> Maybe (a :~: b)
 sameSymbol x y
     | symbolVal x == symbolVal y = Just (unsafeCoerce Refl)
     | otherwise = Nothing
@@ -249,7 +262,8 @@ withNatVal _ n f = unsafeCoerce (NatVal f :: NatVal n a) (const n)
 
 
 ------------------------------------------------------------------------------
-withSymbolVal :: forall a n proxy. proxy n -> String -> (KnownSymbol n => a) -> a
+withSymbolVal
+    :: forall a n proxy. proxy n -> String -> (KnownSymbol n => a) -> a
 withSymbolVal _ n f = unsafeCoerce (SymbolVal f :: SymbolVal n a) (const n)
 
 
@@ -291,41 +305,4 @@ type CmpNat (a :: KNatural) (b :: KNatural) = Compare a b
 
 ------------------------------------------------------------------------------
 type CmpSymbol (a :: KString) (b :: KString) = Compare a b
-#else
-
-
-------------------------------------------------------------------------------
-class (<=) a b => (:<=) a b
-
-
-------------------------------------------------------------------------------
-instance (<=) a b => (:<=) a b
-
-
-------------------------------------------------------------------------------
-type a :<=? b = a <=? b
-
-
-------------------------------------------------------------------------------
-type a :+ b = a + b
-
-
-------------------------------------------------------------------------------
-type a :- b = a - b
-
-
-------------------------------------------------------------------------------
-type a :* b = a * b
-
-
-------------------------------------------------------------------------------
-type a :^ b = a ^ b
-
-
-------------------------------------------------------------------------------
-type Zero = 0
-
-
-------------------------------------------------------------------------------
-type One = 1
 #endif

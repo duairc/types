@@ -1005,9 +1005,6 @@ data Proxy a = Proxy
     , Read
     , Show
     , Bounded
-#ifdef GenericDeriving
-    , Generic
-#endif
 #if !defined(DataPolyKinds) || defined(PolyTypeable)
     , Typeable
 #endif
@@ -1089,6 +1086,38 @@ instance Monoid (Proxy a) where
 ------------------------------------------------------------------------------
 instance NFData (Proxy a) where
     rnf Proxy = ()
+#ifdef GenericDeriving
+
+
+------------------------------------------------------------------------------
+data ProxyD1
+data ProxyC1
+
+
+------------------------------------------------------------------------------
+instance Datatype ProxyD1 where
+    datatypeName _ = "Proxy"
+    moduleName _ = "Type.Meta"
+
+
+------------------------------------------------------------------------------
+instance Constructor ProxyC1 where
+    conName _ = "Proxy"
+
+
+------------------------------------------------------------------------------
+instance Generic (Proxy a) where
+    type Rep (Proxy a) = D1 ProxyD1 (C1 ProxyC1 U1)
+    from _ = M1 (M1 U1)
+    to _ = Proxy
+
+
+------------------------------------------------------------------------------
+instance Generic1 Proxy where
+    type Rep1 Proxy = D1 ProxyD1 (C1 ProxyC1 U1)
+    from1 _ = M1 (M1 U1)
+    to1 _ = Proxy
+#endif
 #endif
 #if !MIN_VERSION_base(4, 8, 0)
 ------------------------------------------------------------------------------

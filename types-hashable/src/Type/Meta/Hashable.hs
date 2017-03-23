@@ -4,7 +4,7 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 #ifdef SafeHaskell
-{-# LANGUAGE Safe #-}
+{-# LANGUAGE Trustworthy #-}
 #endif
 
 #ifdef DataPolyKinds
@@ -39,8 +39,8 @@ import           Type.Meta
 
 
 ------------------------------------------------------------------------------
-instance Hashable (Sing r a) where
-    hashWithSalt s (Sing a) = hashWithSalt s a
+instance Hashable r => Hashable (Sing r a) where
+    hashWithSalt s (Sing a) = hashWithSalt s (val a)
 
 
 ------------------------------------------------------------------------------

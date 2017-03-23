@@ -232,6 +232,10 @@ import           Prelude hiding
 import           Unsafe.Coerce (unsafeCoerce)
 
 
+-- deepseq -------------------------------------------------------------------
+import           Control.DeepSeq (NFData, rnf)
+
+
 ------------------------------------------------------------------------------
 class Known t where
     type Val t
@@ -563,6 +567,11 @@ instance (IsString r, Eq r, Known a, Val a ~ r) => IsString (Sing r a) where
             "Type.Meta.Sing.fromString: " ++ show a ++ " wrong value"
 
 
+------------------------------------------------------------------------------
+instance NFData (Sing r a) where
+    rnf (Sing a) = rnf a
+
+
 #ifdef GenericDeriving
 ------------------------------------------------------------------------------
 #if MIN_VERSION_base(4, 9, 0)
@@ -848,6 +857,11 @@ instance FiniteBits r => FiniteBits (Some r) where
 ------------------------------------------------------------------------------
 instance IsString r => IsString (Some r) where
     fromString = someVal . fromString
+
+
+------------------------------------------------------------------------------
+instance NFData (Some r) where
+    rnf (Some a) = rnf a
 
 
 #ifdef GenericDeriving

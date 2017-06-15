@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies #-}
@@ -54,6 +55,8 @@ import           Unsafe.Coerce (unsafeCoerce)
 
 
 -- types ---------------------------------------------------------------------
+import           Data.Pi (Pi (Pi), fromPi, toPi)
+import           Type.Maybe (Nothing, Just)
 import           Type.Meta
                      ( Known, Val, val
                      , Proxy (Proxy), Sing (Sing), Some (Some)
@@ -62,6 +65,25 @@ import           Type.Meta
 
 -- types-hashable ------------------------------------------------------------
 import           Type.Meta.Hashable ()
+
+
+------------------------------------------------------------------------------
+instance (FromJSON r, Eq r, Known a, Val a ~ r) => FromJSON (Pi (Just a) r)
+  where
+    parseJSON a = do
+        r <- parseJSON a
+        guard $ r == val (Proxy :: Proxy a)
+        return $ Pi Proxy
+
+
+------------------------------------------------------------------------------
+instance FromJSON r => FromJSON (Pi Nothing r) where
+    parseJSON = fmap return . parseJSON
+
+
+------------------------------------------------------------------------------
+instance ToJSON r => ToJSON (Pi a r) where
+    toJSON = toJSON . fromPi
 
 
 ------------------------------------------------------------------------------
@@ -99,6 +121,32 @@ instance ToJSON (Proxy k) where
     toJSON _ = Null
 #endif
 #if MIN_VERSION_aeson(1, 0, 0)
+
+
+------------------------------------------------------------------------------
+instance (FromJSONKey r, Eq r, Known a, Val a ~ r) =>
+    FromJSONKey (Pi (Just a) r)
+  where
+    fromJSONKey = fmap singToPi fromJSONKey
+      where
+        singToPi :: Sing r a -> Pi (Just a) r
+        singToPi (Sing p) = Pi p
+    fromJSONKeyList = fmap (map singToPi) fromJSONKeyList
+      where
+        singToPi :: Sing r a -> Pi (Just a) r
+        singToPi (Sing p) = Pi p
+
+
+------------------------------------------------------------------------------
+instance FromJSONKey r => FromJSONKey (Pi Nothing r) where
+    fromJSONKey = fmap return fromJSONKey
+    fromJSONKeyList = fmap (map return) fromJSONKeyList
+
+
+------------------------------------------------------------------------------
+instance ToJSONKey r => ToJSONKey (Pi a r) where
+    toJSONKey = contramapToJSONKeyFunction fromPi toJSONKey
+    toJSONKeyList = contramapToJSONKeyFunction (map fromPi) toJSONKeyList
 
 
 ------------------------------------------------------------------------------
@@ -156,6 +204,18 @@ instance ToJSONKey r => ToJSONKey (Sing r a) where
 instance ToJSONKey r => ToJSONKey (Some r) where
     toJSONKey = contramapToJSONKeyFunction someVal toJSONKey
     toJSONKeyList = contramapToJSONKeyFunction (map someVal) toJSONKeyList
+
+
+------------------------------------------------------------------------------
+instance a ~ Nothing => FromJSON1 (Pi a) where
+    liftParseJSON pj _ = fmap return . pj
+    liftParseJSONList _ pjl = fmap (map return) . pjl
+
+
+------------------------------------------------------------------------------
+instance a ~ Nothing => ToJSON1 (Pi a) where
+    liftToJSON tj _ = tj . fromPi
+    liftToJSONList _ tjl = tjl . map fromPi
 
 
 ------------------------------------------------------------------------------

@@ -27,6 +27,7 @@ import           Data.Hashable.Lifted (Hashable1, liftHashWithSalt)
 
 
 -- types ---------------------------------------------------------------------
+import           Data.Pi (Pi, fromPi)
 import           Type.Meta
                      ( Sing (Sing), Some (Some), val
 #if !MIN_VERSION_base(4, 7, 0)
@@ -36,6 +37,11 @@ import           Type.Meta
                      , Void, absurd
 #endif
                      )
+
+
+------------------------------------------------------------------------------
+instance Hashable r => Hashable (Pi a r) where
+    hashWithSalt s = hashWithSalt s . fromPi
 
 
 ------------------------------------------------------------------------------

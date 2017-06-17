@@ -23,7 +23,6 @@ library
     include
 
   exposed-modules:
-    Data.Pi
     GHC.TypeLits.Compat
     Type.Bits
     Type.Bool

@@ -114,38 +114,21 @@ import           Data.Bits
                      )
 #if !MIN_VERSION_base(4, 8, 0)
 import           Data.Foldable
-                     ( Foldable
-                     , foldMap
+                     ( Foldable, foldMap
 #if !MIN_VERSION_base(4, 7, 0)
-                     , fold
-                     , foldl
-                     , foldr
-                     , foldl1
-                     , foldr1
+                     , fold, foldl, foldr, foldl1, foldr1
 #endif
                      )
 #endif
 #if MIN_VERSION_base(4, 9, 0)
 import           Data.Functor.Classes
-                     ( Eq1
-                     , Ord1
-                     , Read1
-                     , Show1
-                     , liftEq
-                     , liftCompare
-                     , liftReadList
-                     , liftReadsPrec
-                     , liftShowList
-                     , liftShowsPrec
+                     ( Eq1, liftEq
+                     , Ord1, liftCompare
+                     , Read1, liftReadList, liftReadsPrec
+                     , Show1, liftShowList, liftShowsPrec
                      )
 #endif
-import           Data.Ix
-                     ( Ix
-                     , range
-                     , index
-                     , inRange
-                     , rangeSize
-                     )
+import           Data.Ix (Ix, range, index, inRange, rangeSize)
 #ifdef KindsAreTypes
 import           Data.Kind (Type)
 #endif
@@ -161,12 +144,9 @@ import           Data.Semigroup (Semigroup, (<>))
 import           Data.String (IsString, fromString)
 #if !MIN_VERSION_base(4, 8, 0)
 import           Data.Traversable
-                     ( Traversable
-                     , traverse
+                     ( Traversable, traverse
 #if !MIN_VERSION_base(4, 7, 0)
-                     , sequenceA
-                     , mapM
-                     , sequence
+                     , sequenceA, mapM, sequence
 #endif
                      )
 #endif

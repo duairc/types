@@ -3,6 +3,8 @@
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
+#include "kinds.h"
+
 #ifdef SafeHaskell
 {-# LANGUAGE Trustworthy #-}
 #endif
@@ -27,15 +29,24 @@ import           Data.Hashable.Lifted (Hashable1, liftHashWithSalt)
 
 
 -- types ---------------------------------------------------------------------
+import           Data.Pi (Pi, fromPi)
 import           Type.Meta
                      ( Sing (Sing), Some (Some), val
 #if !MIN_VERSION_base(4, 7, 0)
                      , Proxy
 #endif
+#if defined(DataPolyKinds) && !defined(KindsAreTypes)
+                     , KProxy
+#endif
 #if !MIN_VERSION_base(4, 8, 0)
                      , Void, absurd
 #endif
                      )
+
+
+------------------------------------------------------------------------------
+instance Hashable r => Hashable (Pi (TKind (KPoly1)) r a) where
+    hashWithSalt s = hashWithSalt s . fromPi
 
 
 ------------------------------------------------------------------------------

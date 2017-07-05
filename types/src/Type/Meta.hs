@@ -45,6 +45,8 @@ module Type.Meta
     , someVal
     , same
     , Proxy (Proxy)
+#undef KProxy
+    , KProxy (KProxy)
     , Void
     , absurd
     , (:~:) (Refl)
@@ -136,7 +138,7 @@ import           Data.Kind (Type)
 import           Data.Monoid (Monoid, mappend, mempty, mconcat)
 #endif
 #if MIN_VERSION_base(4, 7, 0)
-import           Data.Proxy (Proxy (Proxy))
+import           Data.Proxy (Proxy (Proxy), KProxy (KProxy))
 #endif
 #if MIN_VERSION_base(4, 9, 0)
 import           Data.Semigroup (Semigroup, (<>))
@@ -1098,8 +1100,14 @@ instance Generic1 Proxy where
     from1 _ = M1 (M1 U1)
     to1 _ = Proxy
 #endif
+
+
+------------------------------------------------------------------------------
+data KProxy (t :: *) = KProxy
 #endif
 #if !MIN_VERSION_base(4, 8, 0)
+
+
 ------------------------------------------------------------------------------
 data Void
   deriving

@@ -1,4 +1,4 @@
-#ifdef DataPolyKinds
+#if __GLASGOW_HASKELL__ >= 706
 #define KBool Bool
 #define KEither(a, b) Either a b
 #define KList(a) [a]
@@ -19,6 +19,11 @@
 #define KPoly6 k5
 #define KPoly7 k6
 #define KString Symbol
+#if __GLASGOW_HASKELL__ >= 800
+#define TKind(k) k
+#else
+#define TKind(k) (_k :: KProxy k)
+#endif
 #else
 #define KBool *
 #define KChar *
@@ -41,4 +46,5 @@
 #define KPoly6 *
 #define KPoly7 *
 #define KString *
+#define TKind(k) _k
 #endif

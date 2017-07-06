@@ -30,18 +30,16 @@ import           Data.Hashable.Lifted (Hashable1, liftHashWithSalt)
 
 -- types ---------------------------------------------------------------------
 import           Data.Pi (Pi, fromPi)
-import           Type.Meta
-                     ( Sing (Sing), Some (Some), val
+import           Data.Sing (Sing, fromSing, Some, fromSome)
 #if !MIN_VERSION_base(4, 7, 0)
-                     , Proxy
+import           Type.Meta (Proxy)
 #endif
 #if defined(DataPolyKinds) && !defined(KindsAreTypes)
-                     , KProxy
+import           Type.Meta (KProxy)
 #endif
 #if !MIN_VERSION_base(4, 8, 0)
-                     , Void, absurd
+import           Type.Meta (Void, absurd)
 #endif
-                     )
 
 
 ------------------------------------------------------------------------------
@@ -51,17 +49,17 @@ instance Hashable r => Hashable (Pi (TKind (KPoly1)) r a) where
 
 ------------------------------------------------------------------------------
 instance Hashable r => Hashable (Sing r a) where
-    hashWithSalt s (Sing a) = hashWithSalt s (val a)
+    hashWithSalt s = hashWithSalt s . fromSing
 
 
 ------------------------------------------------------------------------------
-instance Hashable r => Hashable (Some r) where
-    hashWithSalt s (Some (Sing a)) = hashWithSalt s (val a)
+instance Hashable r => Hashable (Some (TKind (KPoly1)) r) where
+    hashWithSalt s = hashWithSalt s . fromSome
 
 
 ------------------------------------------------------------------------------
-instance Hashable1 Some where
-    liftHashWithSalt hws s (Some (Sing a)) = hws s (val a)
+instance Hashable1 (Some (TKind (KPoly1))) where
+    liftHashWithSalt hws s = hws s . fromSome
 #if !MIN_VERSION_base(4, 7, 0)
 
 
@@ -80,5 +78,5 @@ instance Hashable1 Proxy where
 
 ------------------------------------------------------------------------------
 instance Hashable Void where
-    hashWithSalt s = absurd
+    hashWithSalt _ = absurd
 #endif

@@ -27,6 +27,7 @@ library
 
   exposed-modules:
     Data.Pi
+    Data.Sing
     GHC.TypeLits.Compat
     Type.Bits
     Type.Bool

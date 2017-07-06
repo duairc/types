@@ -51,8 +51,7 @@ import           Data.Aeson.Types
 #if !MIN_VERSION_base(4, 7, 0)
 import           Control.Applicative (empty)
 #endif
-import           Control.Monad (guard)
-#if !MIN_VERSION_base(4, 8, 0)
+#if !MIN_VERSION_base(4, 8, 0) && MIN_VERSION_aeson(1, 0, 0)
 import           Data.Traversable (traverse)
 #endif
 #if MIN_VERSION_aeson(1, 0, 0)
@@ -62,9 +61,13 @@ import           Unsafe.Coerce (unsafeCoerce)
 
 -- types ---------------------------------------------------------------------
 import           Data.Pi (Pi, fromPi, LoadPi (loadPi))
+import           Data.Sing
+                     ( Some, fromSome, toSome
+                     , Sing, fromSing, LoadSing (loadSing)
+                     )
 import           Type.Meta
-                     ( Known, Val, val
-                     , Proxy (Proxy), Sing (Sing), Some (Some)
+                     ( Known, Val
+                     , Proxy (Proxy)
 #if defined(DataPolyKinds) && !defined(KindsAreTypes)
                      , KProxy
 #endif
@@ -89,25 +92,22 @@ instance ToJSON r => ToJSON (Pi (TKind (KPoly1)) r a) where
 
 ------------------------------------------------------------------------------
 instance (FromJSON r, Eq r, Known a, Val a ~ r) => FromJSON (Sing r a) where
-    parseJSON a = do
-        r <- parseJSON a
-        guard $ r == val (Proxy :: Proxy a)
-        return $ Sing Proxy
+    parseJSON a = parseJSON a >>= loadSing (Proxy :: Proxy a)
 
 
 ------------------------------------------------------------------------------
-instance FromJSON r => FromJSON (Some r) where
-    parseJSON = fmap return . parseJSON
+instance FromJSON r => FromJSON (Some (TKind (KPoly1)) r) where
+    parseJSON = fmap toSome . parseJSON
 
 
 ------------------------------------------------------------------------------
 instance ToJSON r => ToJSON (Sing r a) where
-    toJSON (Sing a) = toJSON (val a)
+    toJSON = toJSON . fromSing
 
 
 ------------------------------------------------------------------------------
-instance ToJSON r => ToJSON (Some r) where
-    toJSON (Some (Sing a)) = toJSON (val a)
+instance ToJSON r => ToJSON (Some (TKind (KPoly1)) r) where
+    toJSON = toJSON . fromSome
 #if !MIN_VERSION_base(4, 7, 0)
 
 
@@ -148,72 +148,40 @@ instance ToJSONKey r => ToJSONKey (Pi (TKind (KPoly1)) r a) where
 
 
 ------------------------------------------------------------------------------
-instance (FromJSONKey r, Eq r, Known a, Val a ~ r) => FromJSONKey (Sing r a)
-  where
-    fromJSONKey = case fromJSONKey of
-        FromJSONKeyCoerce _ -> FromJSONKeyTextParser $ \text -> do
-            let r = unsafeCoerce text
-            guard $ r == val (Proxy :: Proxy a)
-            return $ Sing Proxy
-        FromJSONKeyText f -> FromJSONKeyTextParser $ \text -> do
-            let r = f text
-            guard $ r == val (Proxy :: Proxy a)
-            return $ Sing Proxy
-        FromJSONKeyTextParser p -> FromJSONKeyTextParser $ \text -> do
-            r <- p text
-            guard $ r == val (Proxy :: Proxy a)
-            return $ Sing Proxy
-        FromJSONKeyValue p -> FromJSONKeyValue $ \value -> do
-            r <- p value
-            guard $ r == val (Proxy :: Proxy a)
-            return $ Sing Proxy
-    fromJSONKeyList = case fromJSONKeyList of
-        FromJSONKeyCoerce _ -> FromJSONKeyTextParser $ \text -> do
-            let r = unsafeCoerce text
-            guard $ all (== val (Proxy :: Proxy a)) r
-            return $ map (const (Sing Proxy)) r
-        FromJSONKeyText f -> FromJSONKeyTextParser $ \text -> do
-            let r = f text
-            guard $ all (== val (Proxy :: Proxy a)) r
-            return $ map (const (Sing Proxy)) r
-        FromJSONKeyTextParser p -> FromJSONKeyTextParser $ \text -> do
-            r <- p text
-            guard $ all (== val (Proxy :: Proxy a)) r
-            return $ map (const (Sing Proxy)) r
-        FromJSONKeyValue p -> FromJSONKeyValue $ \value -> do
-            r <- p value
-            guard $ all (== val (Proxy :: Proxy a)) r
-            return $ map (const (Sing Proxy)) r
+instance (FromJSONKey r, LoadSing r a) => FromJSONKey (Sing r a) where
+    fromJSONKey = bind fromJSONKey (loadSing (Proxy :: Proxy a))
+    fromJSONKeyList = bind fromJSONKeyList
+        (traverse (loadSing (Proxy :: Proxy a)))
 
 
 ------------------------------------------------------------------------------
-instance FromJSONKey r => FromJSONKey (Some r) where
-    fromJSONKey = fmap return fromJSONKey
-    fromJSONKeyList = fmap (map return) fromJSONKeyList
+instance FromJSONKey r => FromJSONKey (Some (TKind (KPoly1)) r) where
+    fromJSONKey = fmap toSome fromJSONKey
+    fromJSONKeyList = fmap (map toSome) fromJSONKeyList
 
 
 ------------------------------------------------------------------------------
 instance ToJSONKey r => ToJSONKey (Sing r a) where
-    toJSONKey = contramapToJSONKeyFunction singVal toJSONKey
-    toJSONKeyList = contramapToJSONKeyFunction (map singVal) toJSONKeyList
+    toJSONKey = contramapToJSONKeyFunction fromSing toJSONKey
+    toJSONKeyList = contramapToJSONKeyFunction (map fromSing) toJSONKeyList
 
 
 ------------------------------------------------------------------------------
-instance ToJSONKey r => ToJSONKey (Some r) where
-    toJSONKey = contramapToJSONKeyFunction someVal toJSONKey
-    toJSONKeyList = contramapToJSONKeyFunction (map someVal) toJSONKeyList
+instance ToJSONKey r => ToJSONKey (Some (TKind (KPoly1)) r) where
+    toJSONKey = contramapToJSONKeyFunction fromSome toJSONKey
+    toJSONKeyList = contramapToJSONKeyFunction (map fromSome) toJSONKeyList
 
 
 ------------------------------------------------------------------------------
-instance FromJSON1 Some where
-    liftParseJSON pj _ = fmap return . pj
-    liftParseJSONList _ pjl = fmap (map return) . pjl
+instance FromJSON1 (Some (TKind (KPoly1))) where
+    liftParseJSON pj _ = fmap toSome . pj
+    liftParseJSONList _ pjl = fmap (map toSome) . pjl
 
 
 ------------------------------------------------------------------------------
-instance ToJSON1 Some where
-    liftToJSON tj _ = tj . someVal
-    liftToJSONList _ tjl = tjl . map someVal
+instance ToJSON1 (Some (TKind (KPoly1))) where
+    liftToJSON tj _ = tj . fromSome
+    liftToJSONList _ tjl = tjl . map fromSome
 #if !MIN_VERSION_base(4, 7, 0)
 
 
@@ -227,14 +195,4 @@ instance FromJSON1 Proxy where
 instance ToJSON1 Proxy where
     liftToJSON _ _ _ = Null
 #endif
-
-
-------------------------------------------------------------------------------
-singVal :: Sing r a -> r
-singVal (Sing a) = val a
-
-
-------------------------------------------------------------------------------
-someVal :: Some r -> r
-someVal (Some (Sing a)) = val a
 #endif

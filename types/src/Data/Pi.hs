@@ -31,7 +31,7 @@
 #endif
 
 module Data.Pi
-    ( Pi (Pi, Some), fromPi, toPi
+    ( Pi (Pi, Some), fromPi, toPi, fromSing, toSing, fromSome, toSome
     , LoadPi (loadPi), fromJustPi
     , upcast, topcast, downcast, bottomcast
     )
@@ -86,7 +86,6 @@ import           Data.Bits
                      , zeroBits
 #endif
                      )
-import           Data.String (IsString, fromString)
 import           Data.Ix (Ix, range, index, inRange)
 #if !MIN_VERSION_base(4, 8, 0)
 import           Data.Monoid (Monoid, mappend, mempty)
@@ -94,6 +93,7 @@ import           Data.Monoid (Monoid, mappend, mempty)
 #if MIN_VERSION_base(4, 9, 0)
 import           Data.Semigroup (Semigroup, (<>))
 #endif
+import           Data.String (IsString, fromString)
 #if !MIN_VERSION_base(4, 8, 0)
 import           Data.Traversable (traverse)
 #endif
@@ -118,9 +118,6 @@ import           GHC.Generics
 #endif
                      )
 #endif
-#if !MIN_VERSION_base(4, 8, 0)
-import           Prelude hiding (foldr)
-#endif
 import           Unsafe.Coerce (unsafeCoerce)
 
 
@@ -129,6 +126,7 @@ import           Control.DeepSeq (NFData, rnf)
 
 
 -- types ---------------------------------------------------------------------
+import qualified Data.Sing as S (Sing (Sing), Some (Some), toSome)
 import           Type.Maybe (Just, Nothing)
 import           Type.Meta
                      ( Known, Val, val
@@ -157,107 +155,12 @@ data Pi TKind (KPoly1) r (a :: KMaybe (KPoly1)) where
 
 
 ------------------------------------------------------------------------------
-fromPi :: Pi (TKind (KPoly1)) r a -> r
-fromPi (Pi p) = val p
-fromPi (Some p) = val p
-
-
-------------------------------------------------------------------------------
-toPi :: r -> Pi (TKind (KPoly1)) r Nothing
-toPi = toPiProxy Proxy
-  where
-    toPiProxy :: proxy (TKind (KPoly1)) -> r -> Pi (TKind (KPoly1)) r Nothing
-    toPiProxy k r = f $ withVal p r Some p
-      where
-        p = anyProxy k
-#if __GLASGOW_HASKELL__ < 700
-        f = unsafeCoerce
-#else
-        f = id
-#endif
-    anyProxy :: proxy (TKind (KPoly1)) -> Proxy (Any :: KPoly1)
-    anyProxy _ = Proxy
-
-
-------------------------------------------------------------------------------
-type family Any :: KPoly1
-
-
-------------------------------------------------------------------------------
-lift0
-    :: LoadPi (TKind (KPoly1)) r a
-    => proxy a
-    -> r
-    -> Pi (TKind (KPoly1)) r a
-lift0 p = fromJustPi . loadPi p
-
-
-------------------------------------------------------------------------------
-lift1
-    :: LoadPi (TKind (KPoly1)) r a
-    => proxy a
-    -> (r -> r)
-    -> Pi (TKind (KPoly1)) r a
-    -> Pi (TKind (KPoly1)) r a
-lift1 p f = fromJustPi . loadPi p . f . fromPi
-
-
-------------------------------------------------------------------------------
-lift2
-    :: LoadPi (TKind (KPoly1)) r a
-    => proxy a
-    -> (r -> r -> r)
-    -> Pi (TKind (KPoly1)) r a
-    -> Pi (TKind (KPoly1)) r a
-    -> Pi (TKind (KPoly1)) r a
-lift2 p f a b = fromJustPi $ loadPi p $ f (fromPi a) (fromPi b)
-
-
-------------------------------------------------------------------------------
-withVal :: forall a b r. Proxy a -> r -> ((Known a, Val a ~ r) => b) -> b
-withVal _ r f = unsafeCoerce (withEq (unsafeCoerce Refl) f') (const r)
-  where
-    f' = EqF (KnownF f) :: EqF r (Val a) (KnownF a b)
-
-
-------------------------------------------------------------------------------
-newtype KnownF a b = KnownF (Known a => b)
-
-
-------------------------------------------------------------------------------
-newtype EqF a b c = EqF ((a ~ b) => c)
-
-
-------------------------------------------------------------------------------
-withEq :: forall a b c. a :~: b -> EqF a b c -> c
-withEq Refl (EqF c) = c
-
-
-------------------------------------------------------------------------------
-class LoadPi TKind (KPoly1) r (a :: KMaybe (KPoly1)) where
-    loadPi :: Alternative f => proxy a -> r -> f (Pi (TKind (KPoly1)) r a)
-
-
-------------------------------------------------------------------------------
-instance LoadPi (TKind (KPoly1)) r Nothing where
-    loadPi _ = pure . toPi
-    {-# INLINE loadPi #-}
-
-
-------------------------------------------------------------------------------
-instance (Known a, Val a ~ r, Eq r) => LoadPi (TKind (KPoly1)) r (Just a)
-  where
-    loadPi _ a
-        | val (Proxy :: Proxy a) == a = pure (Pi Proxy)
-        | otherwise = empty
-    {-# INLINE loadPi #-}
-
-
-------------------------------------------------------------------------------
-fromJustPi :: Maybe a -> a
-fromJustPi (Just a) = a
-fromJustPi Nothing = error "Data.Pi.loadPi: value did not match type"
-{-# INLINE fromJustPi #-}
+instance Eq r => TestEquality (Pi (TKind (KPoly1)) r) where
+    testEquality (Pi a) (Pi b)
+        | val a == val b = Just (unsafeCoerce Refl)
+        | otherwise = Nothing
+    testEquality (Some _) (Some _) = Just Refl
+    testEquality _ _ = Nothing
 
 
 ------------------------------------------------------------------------------
@@ -385,19 +288,6 @@ instance (Integral r, LoadPi (TKind (KPoly1)) r a) =>
 
 
 ------------------------------------------------------------------------------
-instance (Integral r, Known a, Val a ~ r) =>
-    Integral (Pi (TKind (KPoly1)) r (Just a))
-  where
-    quot = const
-    rem = const
-    div = const
-    mod = const
-    quotRem = (,)
-    divMod = (,)
-    toInteger = toInteger . fromPi
-
-
-------------------------------------------------------------------------------
 instance (Fractional r, LoadPi (TKind (KPoly1)) r a) =>
     Fractional (Pi (TKind (KPoly1)) r a)
   where
@@ -444,7 +334,9 @@ instance (Floating r, LoadPi (TKind (KPoly1)) r a) =>
 
 
 ------------------------------------------------------------------------------
-instance RealFloat r => RealFloat (Pi (TKind (KPoly1)) r Nothing) where
+instance (RealFloat r, LoadPi (TKind (KPoly1)) r a) =>
+    RealFloat (Pi (TKind (KPoly1)) r a)
+  where
     floatRadix = floatRadix . fromPi
     floatDigits = floatDigits . fromPi
     floatRange = floatRange . fromPi
@@ -551,12 +443,103 @@ instance LoadPi (TKind (KPoly1)) r a => Generic (Pi (TKind (KPoly1)) r a)
 
 
 ------------------------------------------------------------------------------
-instance Eq r => TestEquality (Pi (TKind (KPoly1)) r) where
-    testEquality (Pi a) (Pi b)
-        | val a == val b = Just (unsafeCoerce Refl)
-        | otherwise = Nothing
-    testEquality (Some _) (Some _) = Just Refl
-    testEquality _ _ = Nothing
+fromPi :: Pi (TKind (KPoly1)) r a -> r
+fromPi (Pi p) = val p
+fromPi (Some p) = val p
+{-# INLINE fromPi #-}
+
+
+------------------------------------------------------------------------------
+toPi :: r -> Pi (TKind (KPoly1)) r Nothing
+toPi = fromSome . S.toSome
+{-# INLINE toPi #-}
+
+
+------------------------------------------------------------------------------
+fromSome :: S.Some (TKind (KPoly1)) r -> Pi (TKind (KPoly1)) r Nothing
+fromSome (S.Some p) = Some p
+{-# INLINE fromSome #-}
+
+
+------------------------------------------------------------------------------
+toSome :: Pi (TKind (KPoly1)) r Nothing -> S.Some (TKind (KPoly1)) r
+toSome (Some p) = S.Some p
+#if __GLASGOW_HASKELL__ < 704
+toSome _ = undefined
+#endif
+{-# INLINE toSome #-}
+
+
+------------------------------------------------------------------------------
+fromSing :: S.Sing r a -> Pi (TKind (KPoly1)) r (Just a)
+fromSing (S.Sing p) = Pi p
+{-# INLINE fromSing #-}
+
+
+------------------------------------------------------------------------------
+toSing :: Pi (TKind (KPoly1)) r (Just a) -> S.Sing r a
+toSing (Pi p) = S.Sing p
+#if __GLASGOW_HASKELL__ < 704
+toSing _ = undefined
+#endif
+{-# INLINE toSing #-}
+
+
+------------------------------------------------------------------------------
+class LoadPi TKind (KPoly1) r (a :: KMaybe (KPoly1)) where
+    loadPi :: Alternative f => proxy a -> r -> f (Pi (TKind (KPoly1)) r a)
+
+
+------------------------------------------------------------------------------
+instance LoadPi (TKind (KPoly1)) r Nothing where
+    loadPi _ = pure . toPi
+    {-# INLINE loadPi #-}
+
+
+------------------------------------------------------------------------------
+instance (Known a, Val a ~ r, Eq r) => LoadPi (TKind (KPoly1)) r (Just a)
+  where
+    loadPi _ a
+        | val (Proxy :: Proxy a) == a = pure (Pi Proxy)
+        | otherwise = empty
+    {-# INLINE loadPi #-}
+
+
+------------------------------------------------------------------------------
+fromJustPi :: Maybe a -> a
+fromJustPi (Just a) = a
+fromJustPi Nothing = error "Data.Pi.loadPi: value did not match type"
+{-# INLINE fromJustPi #-}
+
+
+------------------------------------------------------------------------------
+lift0
+    :: LoadPi (TKind (KPoly1)) r a
+    => proxy a
+    -> r
+    -> Pi (TKind (KPoly1)) r a
+lift0 p = fromJustPi . loadPi p
+
+
+------------------------------------------------------------------------------
+lift1
+    :: LoadPi (TKind (KPoly1)) r a
+    => proxy a
+    -> (r -> r)
+    -> Pi (TKind (KPoly1)) r a
+    -> Pi (TKind (KPoly1)) r a
+lift1 p f = fromJustPi . loadPi p . f . fromPi
+
+
+------------------------------------------------------------------------------
+lift2
+    :: LoadPi (TKind (KPoly1)) r a
+    => proxy a
+    -> (r -> r -> r)
+    -> Pi (TKind (KPoly1)) r a
+    -> Pi (TKind (KPoly1)) r a
+    -> Pi (TKind (KPoly1)) r a
+lift2 p f a b = fromJustPi $ loadPi p $ f (fromPi a) (fromPi b)
 
 
 ------------------------------------------------------------------------------

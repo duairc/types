@@ -102,7 +102,6 @@ import           Data.Typeable (Typeable)
 #endif
 import           Foreign.Ptr (castPtr)
 import           Foreign.Storable (Storable, alignment, peek, poke, sizeOf)
-import           Unsafe.Coerce (unsafeCoerce)
 
 
 -- deepseq -------------------------------------------------------------------
@@ -122,14 +121,15 @@ import qualified Symbols as S hiding (Sing, Some)
 import           Type.Bool (False)
 #endif
 import           Type.Maybe (Just, Nothing)
-import           Type.Meta
-                     ( Known, Val, val
-                     , Proxy (Proxy)
+import           Type.Meta (Known, Val, val, same)
+import           Type.Meta.Equality
+                     ( (:~:) (Refl), lift, TestEquality, testEquality
+                     )
+import           Type.Meta.Proxy
+                     ( Proxy (Proxy)
 #if defined(DataPolyKinds) && !defined(KindsAreTypes)
                      , KProxy
 #endif
-                     , (:~:) (Refl)
-                     , TestEquality, testEquality
                      )
 
 
@@ -150,9 +150,7 @@ data Pi TKind (KPoly1) r (a :: KMaybe (KPoly1)) where
 
 ------------------------------------------------------------------------------
 instance Eq r => TestEquality (Pi (TKind (KPoly1)) r) where
-    testEquality (Pi a) (Pi b)
-        | val a == val b = Just (unsafeCoerce Refl)
-        | otherwise = Nothing
+    testEquality (Pi a) (Pi b) = fmap lift (same a b)
     testEquality (Some _) (Some _) = Just Refl
     testEquality _ _ = Nothing
 

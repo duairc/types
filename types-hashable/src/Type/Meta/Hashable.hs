@@ -32,13 +32,13 @@ import           Data.Hashable.Lifted (Hashable1, liftHashWithSalt)
 import           Data.Pi (Pi, fromPi)
 import           Data.Sing (Sing, fromSing, Some, fromSome)
 #if !MIN_VERSION_base(4, 7, 0)
-import           Type.Meta (Proxy)
+import           Type.Meta.Proxy (Proxy)
 #endif
 #if defined(DataPolyKinds) && !defined(KindsAreTypes)
-import           Type.Meta (KProxy)
+import           Type.Meta.Proxy (KProxy)
 #endif
 #if !MIN_VERSION_base(4, 8, 0)
-import           Type.Meta (Void, absurd)
+import           Type.Meta.Void (Void, absurd)
 #endif
 
 

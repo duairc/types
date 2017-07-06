@@ -121,7 +121,9 @@ import           Unsafe.Coerce (unsafeCoerce)
 
 -- types ---------------------------------------------------------------------
 import           Type.Bool (True)
-import           Type.Meta (Known, Val, val, Proxy (Proxy), (:~:) (Refl))
+import           Type.Meta (Known, Val, val)
+import           Type.Meta.Equality ((:~:) (Refl))
+import           Type.Meta.Proxy (Proxy (Proxy))
 import           Type.Natural
                      (
 #ifdef DataPolyKinds

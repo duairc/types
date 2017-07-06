@@ -34,7 +34,8 @@ import           Data.Typeable (Typeable)
 -- types ---------------------------------------------------------------------
 import {-# SOURCE #-} Type.Bool ((:&&))
 import           Type.Eq ((:==))
-import           Type.Meta (Known, Val, val, Proxy (Proxy))
+import           Type.Meta (Known, Val, val)
+import           Type.Meta.Proxy (Proxy (Proxy))
 import           Type.Ord (Compare)
 import           Type.Semigroup ((:<>))
 

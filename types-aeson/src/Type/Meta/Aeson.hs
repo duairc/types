@@ -65,9 +65,9 @@ import           Data.Sing
                      ( Some, fromSome, toSome
                      , Sing, fromSing, LoadSing (loadSing)
                      )
-import           Type.Meta
-                     ( Known, Val
-                     , Proxy (Proxy)
+import           Type.Meta (Known, Val)
+import           Type.Meta.Proxy
+                     ( Proxy (Proxy)
 #if defined(DataPolyKinds) && !defined(KindsAreTypes)
                      , KProxy
 #endif

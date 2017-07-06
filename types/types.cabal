@@ -37,6 +37,9 @@ library
     Type.List
     Type.Maybe
     Type.Meta
+    Type.Meta.Equality
+    Type.Meta.Proxy
+    Type.Meta.Void
     Type.Natural
     Type.Num
     Type.Ordering

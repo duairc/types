@@ -1,14 +1,7 @@
 {-# LANGUAGE CPP #-}
-{-# LANGUAGE DeriveDataTypeable #-}
-{-# LANGUAGE EmptyDataDecls #-}
-{-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE GADTs #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UndecidableInstances #-}
@@ -28,72 +21,12 @@
 {-# LANGUAGE Trustworthy #-}
 #endif
 
-#ifdef KindsAreTypes
-{-# LANGUAGE TypeInType #-}
-#endif
-
-#if MIN_VERSION_base(4, 7, 0)
-{-# OPTIONS_GHC -fno-warn-deprecations #-}
-#endif
-
 module Type.Meta
-    ( Known, Val, val
-    , same
-    , Proxy (Proxy), KProxy (KProxy)
-    , Void, absurd
-    , (:~:) (Refl), TestEquality, testEquality
+    ( Known, Val, val, same
     )
 where
 
 -- base ----------------------------------------------------------------------
-#if !MIN_VERSION_base(4, 7, 0)
-import           Control.Applicative (Applicative, pure, (<*>))
-#endif
-#if !MIN_VERSION_base(4, 7, 0)
-import           Control.Category (Category, id, (.))
-#endif
-#if !MIN_VERSION_base(4, 8, 0)
-import           Control.Exception (Exception)
-#endif
-#if !MIN_VERSION_base(4, 7, 0)
-import           Data.Foldable
-                     ( Foldable, foldMap, fold, foldl, foldr, foldl1, foldr1
-                     )
-#endif
-#if !MIN_VERSION_base(4, 8, 0)
-import           Data.Ix (Ix, range, index, inRange, rangeSize)
-#endif
-#if !MIN_VERSION_base(4, 7, 0)
-import           Data.Monoid (Monoid, mappend, mempty, mconcat)
-#endif
-#if MIN_VERSION_base(4, 7, 0)
-import           Data.Proxy (Proxy (Proxy), KProxy (KProxy))
-#endif
-#if !MIN_VERSION_base(4, 7, 0)
-import           Data.Traversable
-                     ( Traversable, traverse, sequenceA, mapM, sequence
-                     )
-#endif
-#if MIN_VERSION_base(4, 7, 0)
-import           Data.Type.Equality ((:~:) (Refl), TestEquality, testEquality)
-#endif
-#if !MIN_VERSION_base(4, 8, 0)
-import           Data.Typeable (Typeable)
-#endif
-#if MIN_VERSION_base(4, 8, 0)
-import           Data.Void (Void, absurd)
-#endif
-#if defined(GenericDeriving) && !MIN_VERSION_base(4, 8, 0)
-import           GHC.Generics
-                     ( Generic
-#if !MIN_VERSION_base(4, 7, 0)
-                     , Rep, to, from, Generic1, Rep1, from1, to1
-                     , C1, D1, M1 (M1), U1 (U1)
-                     , Datatype, Constructor
-                     , datatypeName, moduleName, conName
-#endif
-                     )
-#endif
 #if MIN_VERSION_base(4, 6, 0) && defined(DataPolyKinds)
 import           GHC.TypeLits
                      ( Nat
@@ -116,24 +49,14 @@ import qualified GHC.TypeLits as G
 #if MIN_VERSION_base(4, 8, 0) && defined (DataPolyKinds)
 import           Numeric.Natural (Natural)
 #endif
-#if !MIN_VERSION_base(4, 7, 0)
-import           Prelude hiding
-                     ( (.)
-                     , foldl
-                     , foldr
-                     , foldl1
-                     , foldr1
-                     , id
-                     , mapM
-                     , sequence
-                     )
-#endif
 import           Unsafe.Coerce (unsafeCoerce)
-#if !MIN_VERSION_base(4, 8, 0)
 
 
--- deepseq -------------------------------------------------------------------
-import           Control.DeepSeq (NFData, rnf)
+-- types ---------------------------------------------------------------------
+import           Type.Meta.Equality ((:~:) (Refl))
+#ifdef DataPolyKinds
+import           Type.Meta.Proxy (Proxy (Proxy))
+import           Type.Meta.Void (Void)
 #endif
 
 
@@ -338,57 +261,6 @@ instance
     {-# INLINE val #-}
 #endif
 #endif
-#if !MIN_VERSION_base(4, 7, 0)
-
-
-------------------------------------------------------------------------------
-data a :~: b where
-    Refl :: a :~: a
-#if !defined(DataPolyKinds) || defined(PolyTypeable)
-  deriving (Typeable)
-#endif
-deriving instance Show (a :~: b)
-infix 4 :~:
-
-
-------------------------------------------------------------------------------
-instance Eq (a :~: b) where
-    Refl == Refl = True
-
-
-------------------------------------------------------------------------------
-instance Ord (a :~: b) where
-    compare Refl Refl = EQ
-
-
-------------------------------------------------------------------------------
-instance a ~ b => Enum (a :~: b) where
-    toEnum 0 = Refl
-    toEnum _ = error "Type.Meta.Equality.toEnum: bad argument"
-    fromEnum Refl = 0
-
-
-------------------------------------------------------------------------------
-instance a ~ b => Bounded (a :~: b) where
-    minBound = Refl
-    maxBound = Refl
-
-
-------------------------------------------------------------------------------
-instance Category (:~:) where
-    id = Refl
-    Refl . Refl = Refl
-
-
-------------------------------------------------------------------------------
-class TestEquality f where
-    testEquality :: f a -> f b -> Maybe (a :~: b)
-
-
-------------------------------------------------------------------------------
-instance TestEquality ((:~:) a) where
-    testEquality Refl Refl = Just Refl
-#endif
 
 
 ------------------------------------------------------------------------------
@@ -397,186 +269,3 @@ same :: (Eq (Val a), Val a ~ Val b, Known a, Known b)
     -> proxy' b
     -> Maybe (a :~: b)
 same a b = if val a == val b then Just (unsafeCoerce Refl) else Nothing
-#if !MIN_VERSION_base(4, 7, 0)
-
-
-------------------------------------------------------------------------------
-data Proxy a = Proxy
-  deriving
-    ( Eq
-    , Ord
-    , Read
-    , Show
-    , Bounded
-#if !defined(DataPolyKinds) || defined(PolyTypeable)
-    , Typeable
-#endif
-    )
-
-
-------------------------------------------------------------------------------
-instance Functor Proxy where
-    fmap _ _ = Proxy
-    {-# INLINE fmap #-}
-
-
-------------------------------------------------------------------------------
-instance Applicative Proxy where
-    pure _ = Proxy
-    {-# INLINE pure #-}
-    _ <*> _ = Proxy
-    {-# INLINE (<*>) #-}
-
-
-------------------------------------------------------------------------------
-instance Monad Proxy where
-    return _ = Proxy
-    {-# INLINE return #-}
-    _ >>= _ = Proxy
-    {-# INLINE (>>=) #-}
-
-
-------------------------------------------------------------------------------
-instance Foldable Proxy where
-    foldMap _ _ = mempty
-    {-# INLINE foldMap #-}
-    fold _ = mempty
-    {-# INLINE fold #-}
-    foldl _ z _ = z
-    {-# INLINE foldl #-}
-    foldr _ z _ = z
-    {-# INLINE foldr #-}
-    foldl1 _ _ = error "foldl1: Proxy"
-    {-# INLINE foldl1 #-}
-    foldr1 _ _ = error "foldr1: Proxy"
-    {-# INLINE foldr1 #-}
-
-
-------------------------------------------------------------------------------
-instance Traversable Proxy where
-    traverse _ _ = pure Proxy
-    {-# INLINE traverse #-}
-    sequenceA _ = pure Proxy
-    {-# INLINE sequenceA #-}
-    mapM _ _ = return Proxy
-    {-# INLINE mapM #-}
-    sequence _ = return Proxy
-    {-# INLINE sequence #-}
-
-
-------------------------------------------------------------------------------
-instance Enum (Proxy a) where
-    toEnum 0 = Proxy
-    toEnum _ = error "Type.Meta.Proxy.toEnum: bad argument"
-    fromEnum Proxy = 0
-
-
-------------------------------------------------------------------------------
-instance Ix (Proxy a) where
-    range _ = [Proxy]
-    index _ _ = 0
-    inRange _ _ = True
-    rangeSize _ = 1
-
-
-------------------------------------------------------------------------------
-instance Monoid (Proxy a) where
-    mempty = Proxy
-    mappend _ _ = Proxy
-    mconcat _ = Proxy
-
-
-------------------------------------------------------------------------------
-instance NFData (Proxy a) where
-    rnf Proxy = ()
-#ifdef GenericDeriving
-
-
-------------------------------------------------------------------------------
-data ProxyD1
-data ProxyC1
-
-
-------------------------------------------------------------------------------
-instance Datatype ProxyD1 where
-    datatypeName _ = "Proxy"
-    moduleName _ = "Type.Meta"
-
-
-------------------------------------------------------------------------------
-instance Constructor ProxyC1 where
-    conName _ = "Proxy"
-
-
-------------------------------------------------------------------------------
-instance Generic (Proxy a) where
-    type Rep (Proxy a) = D1 ProxyD1 (C1 ProxyC1 U1)
-    from _ = M1 (M1 U1)
-    to _ = Proxy
-
-
-------------------------------------------------------------------------------
-instance Generic1 Proxy where
-    type Rep1 Proxy = D1 ProxyD1 (C1 ProxyC1 U1)
-    from1 _ = M1 (M1 U1)
-    to1 _ = Proxy
-#endif
-
-
-------------------------------------------------------------------------------
-data KProxy (t :: *) = KProxy
-#endif
-#if !MIN_VERSION_base(4, 8, 0)
-
-
-------------------------------------------------------------------------------
-data Void
-  deriving
-    ( Typeable
-#ifdef GenericDeriving
-    , Generic
-#endif
-    )
-
-
-------------------------------------------------------------------------------
-instance Eq Void where
-    _ == _ = True
-
-
-------------------------------------------------------------------------------
-instance Ord Void where
-    compare _ _ = EQ
-
-
-------------------------------------------------------------------------------
-instance Ix Void where
-    range _     = []
-    index _     = absurd
-    inRange _   = absurd
-    rangeSize _ = 0
-
-
-------------------------------------------------------------------------------
-instance Read Void where
-    readsPrec _ _ = []
-
-
-------------------------------------------------------------------------------
-instance Show Void where
-    showsPrec _ = absurd
-
-
-------------------------------------------------------------------------------
-instance Exception Void
-
-
-------------------------------------------------------------------------------
-instance NFData Void where
-    rnf = absurd
-
-
-------------------------------------------------------------------------------
-absurd :: Void -> a
-absurd _ = undefined
-#endif

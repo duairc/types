@@ -137,14 +137,13 @@ import qualified Symbols as S
 import           Type.Bool (False)
 import           Type.Maybe (Nothing)
 #endif
-import           Type.Meta
-                     ( Known, Val, val
-                     , Proxy (Proxy)
+import           Type.Meta (Known, Val, val, same)
+import           Type.Meta.Equality ((:~:) (Refl), TestEquality, testEquality)
+import           Type.Meta.Proxy
+                     ( Proxy (Proxy)
 #if defined(DataPolyKinds) && !defined(KindsAreTypes)
                      , KProxy
 #endif
-                     , (:~:) (Refl)
-                     , TestEquality, testEquality
                      )
 
 
@@ -482,9 +481,7 @@ data Sing r a = (Known a, Val a ~ r) => Sing !(Proxy a)
 
 ------------------------------------------------------------------------------
 instance Eq r => TestEquality (Sing r) where
-    testEquality (Sing a) (Sing b)
-        | val a == val b = Just (unsafeCoerce Refl)
-        | otherwise = Nothing
+    testEquality (Sing a) (Sing b) = same a b
 
 
 ------------------------------------------------------------------------------

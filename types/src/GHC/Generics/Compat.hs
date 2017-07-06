@@ -114,7 +114,8 @@ import          GHC.TypeLits.Compat (Nat, Symbol)
 #if !MIN_VERSION_base(4, 9, 0)
 import          Type.Maybe (Just, Nothing)
 #endif
-import          Type.Meta (Known, Val, val, Proxy (Proxy))
+import           Type.Meta (Known, Val, val)
+import           Type.Meta.Proxy (Proxy (Proxy))
 
 
 ------------------------------------------------------------------------------

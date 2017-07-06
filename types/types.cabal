@@ -22,6 +22,9 @@ library
   include-dirs:
     include
 
+  install-includes:
+    kinds.h
+
   exposed-modules:
     Data.Pi
     GHC.TypeLits.Compat

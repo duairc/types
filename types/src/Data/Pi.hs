@@ -102,22 +102,6 @@ import           Data.Typeable (Typeable)
 #endif
 import           Foreign.Ptr (castPtr)
 import           Foreign.Storable (Storable, alignment, peek, poke, sizeOf)
-#if defined(GenericDeriving)
-import           GHC.Generics
-                     ( Generic, Rep, to, from
-                     , C1, D1, K1 (K1), M1 (M1), S1, Rec0
-#if MIN_VERSION_base(4, 9, 0)
-                     , DecidedStrictness (DecidedLazy)
-                     , FixityI (PrefixI)
-                     , Meta (MetaCons, MetaData, MetaSel)
-                     , SourceStrictness (NoSourceStrictness)
-                     , SourceUnpackedness (NoSourceUnpackedness)
-#else
-                     , Datatype, Constructor, NoSelector
-                     , datatypeName, moduleName, conName
-#endif
-                     )
-#endif
 import           Unsafe.Coerce (unsafeCoerce)
 
 
@@ -127,6 +111,16 @@ import           Control.DeepSeq (NFData, rnf)
 
 -- types ---------------------------------------------------------------------
 import qualified Data.Sing as S (Sing (Sing), Some (Some), toSome)
+#if defined(GenericDeriving)
+import           GHC.Generics.Compat
+                     ( Generic, Rep, to, from
+                     , C1, D1, K1 (K1), M1 (M1), S1, Rec0
+                     , DecidedLazy, PrefixI, MetaCons, MetaData, MetaSel
+                     , NoSourceStrictness, NoSourceUnpackedness
+                     )
+import qualified Symbols as S hiding (Sing, Some)
+import           Type.Bool (False)
+#endif
 import           Type.Maybe (Just, Nothing)
 import           Type.Meta
                      ( Known, Val, val
@@ -410,27 +404,10 @@ instance NFData r => NFData (Pi (TKind (KPoly1)) r a) where
 
 
 ------------------------------------------------------------------------------
-#if MIN_VERSION_base(4, 9, 0)
-type PiD1 = 'MetaData "Pi" "Data.Pi" "types" 'False
-type PiC1 = 'MetaCons "Pi" 'PrefixI 'False
+type PiD1 = MetaData S.Pi S.DataPi S.Types False
+type PiC1 = MetaCons S.Pi PrefixI False
 type PiS1 =
-    'MetaSel 'Nothing 'NoSourceUnpackedness 'NoSourceStrictness 'DecidedLazy
-#else
-data PiD1
-data PiC1
-type PiS1 = NoSelector
-
-
-------------------------------------------------------------------------------
-instance Datatype PiD1 where
-    datatypeName _ = "Pi"
-    moduleName _ = "Data.Pi"
-
-
-------------------------------------------------------------------------------
-instance Constructor PiC1 where
-    conName _ = "Pi"
-#endif
+    MetaSel Nothing NoSourceUnpackedness NoSourceStrictness DecidedLazy
 
 
 ------------------------------------------------------------------------------

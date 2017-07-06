@@ -115,22 +115,6 @@ import           Data.Typeable (Typeable)
 #endif
 import           Foreign.Ptr (castPtr)
 import           Foreign.Storable (Storable, alignment, peek, poke, sizeOf)
-#if defined(GenericDeriving)
-import           GHC.Generics
-                     ( Generic, Rep, to, from, Generic1, Rep1, from1, to1
-                     , C1, D1, K1 (K1), M1 (M1), S1, Rec0, Par1 (Par1)
-#if MIN_VERSION_base(4, 9, 0)
-                     , DecidedStrictness (DecidedLazy)
-                     , FixityI (PrefixI)
-                     , Meta (MetaCons, MetaData, MetaSel)
-                     , SourceStrictness (NoSourceStrictness)
-                     , SourceUnpackedness (NoSourceUnpackedness)
-#else
-                     , Datatype, Constructor, NoSelector
-                     , datatypeName, moduleName, conName
-#endif
-                     )
-#endif
 #if !MIN_VERSION_base(4, 8, 0)
 import           Prelude hiding (foldr)
 #endif
@@ -142,6 +126,17 @@ import           Control.DeepSeq (NFData, rnf)
 
 
 -- types ---------------------------------------------------------------------
+#if defined(GenericDeriving)
+import           GHC.Generics.Compat
+                     ( Generic, Rep, to, from, Generic1, Rep1, from1, to1
+                     , C1, D1, K1 (K1), M1 (M1), S1, Rec0, Par1 (Par1)
+                     , DecidedLazy, PrefixI, MetaCons, MetaData, MetaSel
+                     , NoSourceStrictness, NoSourceUnpackedness
+                     )
+import qualified Symbols as S
+import           Type.Bool (False)
+import           Type.Maybe (Nothing)
+#endif
 import           Type.Meta
                      ( Known, Val, val
                      , Proxy (Proxy)
@@ -410,32 +405,16 @@ instance NFData r => NFData (Some (TKind (KPoly1)) r) where
 
 #ifdef GenericDeriving
 ------------------------------------------------------------------------------
-#if MIN_VERSION_base(4, 9, 0)
-type SomeD1 = 'MetaData "Some" "Data.Sing" "types" 'False
-type SomeC1 = 'MetaCons "Some" 'PrefixI 'False
+type SomeD1 = MetaData S.Some S.DataSing S.Types False
+type SomeC1 = MetaCons S.Some PrefixI False
 type SomeS1 =
-    'MetaSel 'Nothing 'NoSourceUnpackedness 'NoSourceStrictness 'DecidedLazy
-#else
-data SomeD1
-data SomeC1
-type SomeS1 = NoSelector
-
-
-------------------------------------------------------------------------------
-instance Datatype SomeD1 where
-    datatypeName _ = "Some"
-    moduleName _ = "Data.Sing"
-
-
-------------------------------------------------------------------------------
-instance Constructor SomeC1 where
-    conName _ = "Some"
-#endif
+    MetaSel Nothing NoSourceUnpackedness NoSourceStrictness DecidedLazy
 
 
 ------------------------------------------------------------------------------
 instance Generic (Some (TKind (KPoly1)) r) where
-    type Rep (Some (TKind (KPoly1)) r) = D1 SomeD1 (C1 SomeC1 (S1 SomeS1 (Rec0 r)))
+    type Rep (Some (TKind (KPoly1)) r) =
+        D1 SomeD1 (C1 SomeC1 (S1 SomeS1 (Rec0 r)))
     from (Some a) = M1 (M1 (M1 (K1 (val a))))
     to (M1 (M1 (M1 (K1 a)))) = pure a
 
@@ -715,27 +694,10 @@ instance NFData r => NFData (Sing r a) where
 
 
 ------------------------------------------------------------------------------
-#if MIN_VERSION_base(4, 9, 0)
-type SingD1 = 'MetaData "Sing" "Data.Sing" "types" 'False
-type SingC1 = 'MetaCons "Sing" 'PrefixI 'False
+type SingD1 = MetaData S.Sing S.DataSing S.Types False
+type SingC1 = MetaCons S.Sing PrefixI False
 type SingS1 =
-    'MetaSel 'Nothing 'NoSourceUnpackedness 'NoSourceStrictness 'DecidedLazy
-#else
-data SingD1
-data SingC1
-type SingS1 = NoSelector
-
-
-------------------------------------------------------------------------------
-instance Datatype SingD1 where
-    datatypeName _ = "Sing"
-    moduleName _ = "Data.Sing"
-
-
-------------------------------------------------------------------------------
-instance Constructor SingC1 where
-    conName _ = "Sing"
-#endif
+    MetaSel Nothing NoSourceUnpackedness NoSourceStrictness DecidedLazy
 
 
 ------------------------------------------------------------------------------

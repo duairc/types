@@ -51,6 +51,9 @@ library
     Type.Tuple.Sextet
     Type.Tuple.Septet
 
+  other-modules:
+    Symbols
+
   build-depends:
     base >= 4 && < 5,
     deepseq >= 1.2 && < 1.5

@@ -36,7 +36,8 @@ module Type.String
 where
 
 -- base ----------------------------------------------------------------------
-#if MIN_VERSION_base(4, 7, 0) && defined(DataPolyKinds)
+#if MIN_VERSION_base(4, 7, 0) && defined(DataPolyKinds) &&\
+	!MIN_VERSION_base(4, 11, 0)
 import           Data.Type.Equality (type (==))
 #endif
 import           Data.Typeable (Typeable)
@@ -78,7 +79,8 @@ instance (Known cs, Val cs ~ S.String) => Known (String cs) where
     {-# INLINE val #-}
 
 
-#if MIN_VERSION_base(4, 7, 0) && defined(DataPolyKinds)
+#if MIN_VERSION_base(4, 7, 0) && defined(DataPolyKinds) &&\
+	!MIN_VERSION_base(4, 11, 0)
 ------------------------------------------------------------------------------
 type instance (as :: KString) == (bs :: KString) = as :== bs
 

@@ -38,7 +38,7 @@ where
 import           Data.Bits ((.|.), shiftL)
 import qualified Data.Char as C (Char)
 #ifdef DataPolyKinds
-#if MIN_VERSION_base(4, 7, 0)
+#if MIN_VERSION_base(4, 7, 0) && !MIN_VERSION_base(4, 11, 0)
 import           Data.Type.Equality (type (==))
 #endif
 #ifdef PolyTypeable
@@ -151,7 +151,8 @@ instance
     {-# INLINE val #-}
 
 
-#if MIN_VERSION_base(4, 7, 0) && defined(DataPolyKinds)
+#if MIN_VERSION_base(4, 7, 0) && defined(DataPolyKinds) &&\
+	!MIN_VERSION_base(4, 11, 0)
 ------------------------------------------------------------------------------
 type instance (a :: KChar) == (b :: KChar) = a :== b
 

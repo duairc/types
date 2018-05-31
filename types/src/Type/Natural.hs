@@ -39,7 +39,8 @@ where
 
 -- base ----------------------------------------------------------------------
 import           Data.Bits ((.|.), shiftL)
-#if MIN_VERSION_base(4, 7, 0) && defined(DataPolyKinds)
+#if MIN_VERSION_base(4, 7, 0) && defined(DataPolyKinds) && \
+	!MIN_VERSION_base(4, 11, 0)
 import           Data.Type.Equality (type (==))
 #endif
 import           Data.Typeable (Typeable)
@@ -116,7 +117,8 @@ type Zero = Natural Nil
 type One = Natural (Cons True Nil)
 
 
-#if MIN_VERSION_base(4, 7, 0) && defined(DataPolyKinds)
+#if MIN_VERSION_base(4, 7, 0) && defined(DataPolyKinds) &&\
+	!MIN_VERSION_base(4, 11, 0)
 ------------------------------------------------------------------------------
 type instance (a :: KNatural) == (b :: KNatural) = a :== b
 

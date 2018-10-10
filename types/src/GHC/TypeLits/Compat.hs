@@ -27,6 +27,10 @@
 #endif
 #endif
 
+#ifdef LANGUAGE_StarIsType
+{-# LANGUAGE NoStarIsType #-}
+#endif
+
 module GHC.TypeLits.Compat
     (
 #ifdef DataPolyKinds

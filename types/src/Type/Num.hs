@@ -19,6 +19,10 @@
 #endif
 #endif
 
+#ifdef LANGUAGE_StarIsType
+{-# LANGUAGE NoStarIsType #-}
+#endif
+
 module Type.Num
     ( (:+)
     , (:-)
